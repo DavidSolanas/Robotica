@@ -75,64 +75,72 @@ def trajectory_2(robot):
 
         elif estado == 1:
             # estado 1, empieza la trayectoria
-            if (-25 <= x <= 25) and (-25 <= y <= 25) and (math.pi/2. - 0.1 <= th <= math.pi/2. + 0.1):
+            print('Estado 1: ',x,y,th)
+            if (-5 <= x <= 5) and (-5 <= y <= 5) and (math.pi/2. - 0.01 <= th <= math.pi/2. + 0.01):
                 estado = 2
                 # Actualizar velocidad
-                robot.setSpeed(100*math.pi, -math.pi/2.)
+                robot.setSpeed(87.2666, -0.43633)
 
         elif estado == 2:
             # estado 2, llega al centro del 8
-            if (alpha - 0.1 <= th <= alpha + 0.1):
+            print('Estado 2: ', x,y,th)
+            if (alpha - 0.01 <= th <= alpha + 0.015):
                 estado = 3
                 # Actualizar velocidad
-                robot.setSpeed((2*d2 + d1) / 4., 0)
+                robot.setSpeed((2*d2 + d1) / 5., 0.)
 
         elif estado == 3:
             # estado 3, llega arriba del 8
-            print(x,y,th)
-            if (2*d2 + d1 -50 <= x <= 2*d2 + d1 + 50) and (d2 - 50 <= y <= d2 + 50) and (alpha - 0.1 <= th <= alpha + 0.1):
+            print('Estado 3: ',x,y,th)
+            if (2*d2 + d1 - 25 <= x <= 2*d2 + d1 + 25) and (d2 - 25 <= y <= d2 + 25) and (alpha - 0.02 <= th <= alpha + 0.02):
                 estado = 4
                 # Actualizar velocidad
                 robot.setSpeed(0., -alpha * 0.2)
 
         elif estado == 4:
+            print('Estado 4: ',x,y,th)
             # estado 4, llega arriba del 8
-            if (2*d2 + d1 -25 <= x <= 2*d2 + d1 + 25) and (d2 - 25 <= y <= d2 + 25) and (-0.1 <= th <=  0.1):
+            if (2*d2 + d1 -25 <= x <= 2*d2 + d1 + 25) and (d2 - 30 <= y <= d2 + 30) and (-0.02 <= th <=  0.02):
                 estado = 5
                 # Actualizar velocidad
-                robot.setSpeed(100*math.pi, -math.pi/4.)
+                robot.setSpeed(100*math.pi, -math.pi/4)
 
         elif estado == 5:
+            print('Estado 5: ',x,y,th)
             # estado 5, vuelve al centro del 8
-            if (2*d2 + d1 -25 <= x <= 2*d2 + d1 + 25) and (-d2 - 25 <= y <= -d2 + 25) and (-math.pi -0.1 <= th <= -math.pi + 0.1):
+            if (2*d2 + d1 -25 <= x <= 2*d2 + d1 + 25) and (-d2 - 30 <= y <= -d2 + 30) and (-math.pi -0.02 <= th <= -math.pi + 0.02):
                 estado = 6
                 # Actualizar velocidad
                 robot.setSpeed(0., -alpha * 0.2)
 
         elif estado == 6:
+            print('Estado 6: ',x,y,th)
             # estado 6, vuelve al centro del 8
-            if (2*d2 + d1 -25 <= x <= 2*d2 + d1 + 25) and (-d2 - 25 <= y <= -d2 + 25) and (-3.4033 -0.1 <= th <= -3.4033 + 0.1):
+            if (2*d2 + d1 -25 <= x <= 2*d2 + d1 + 25) and (-d2 - 30 <= y <= -d2 + 30) and (-3.4033 -0.02 <= th <= -3.4033 + 0.02):
                 estado = 7
                 # Actualizar velocidad
-                robot.setSpeed((2*d2 + d1) / 4., 0)
+                robot.setSpeed((2*d2 + d1) / 5., 0)
                 
         elif estado == 7:
+            print('Estado 7: ',x,y,th)
             # estado 7, vuelve al centro del 8
-            if (d1 -25 <= x <= d1 + 25) and (-d1 - 25 <= y <= -d1 + 25) and (-3.4033 -0.1 <= th <= -3.4033 + 0.1):
+            if (d1 -25 <= x <= d1 + 25) and (-d1 - 25 <= y <= -d1 + 25) and (-3.4033 -0.02 <= th <= -3.4033 + 0.02):
                 estado = 8
                 # Actualizar velocidad
                 robot.setSpeed(0., alpha * 0.2)
 
         elif estado == 8:
+            print('Estado 8: ',x,y,th)
             # estado 8, vuelve al centro del 8
-            if (d1 -25 <= x <= d1 + 25) and (-d1 - 25 <= y <= -d1 + 25) and (-math.pi -0.1 <= th <= -math.pi + 0.1):
+            if (d1 -25 <= x <= d1 + 25) and (-d1 - 25 <= y <= -d1 + 25) and (-math.pi -0.02 <= th <= -math.pi + 0.02):
                 estado = 9
                 # Actualizar velocidad
-                robot.setSpeed(100*math.pi, -math.pi/2.)
+                robot.setSpeed(87.2666, -0.43633)
 
-        elif estado == 8:
-            # estado 8, vuelve al centro del 8
-            if (-25 <= x <= 25) and (-25 <= y <= 25) and (math.pi/2. -0.1 <= th <= math.pi/2. + 0.1):
+        elif estado == 9:
+            print('Estado 9: ',x,y,th)
+            # estado 9, vuelve al centro del 9
+            if (-25 <= x <= 25) and (-25 <= y <= 25) and (math.pi/2. -0.02 <= th <= math.pi/2. + 0.02):
                 stop = True
                 
 
@@ -159,10 +167,23 @@ def main(args):
 
 
         # PART 1:
-        # trajectory_8(robot)
+        #trajectory_8(robot)
         trajectory_2(robot)
+        
+        """
+        robot.setSpeed(200, 0)
+        time.sleep(1)
+        robot.setSpeed(-50, 0)
+        time.sleep(1)
+        for i in range(1,10000000):
+            robot.lock_odometry.acquire()
+            x, y, th = robot.readOdometry()
+            robot.lock_odometry.release()
 
-            
+            print(x, y ,th)
+            time.sleep(0.005)
+        """
+        
 
         # PART 2:
         # robot.setSpeed()

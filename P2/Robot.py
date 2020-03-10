@@ -56,13 +56,15 @@ class Robot:
         #self.lock_odometry.release()
 
         # odometry update period --> UPDATE value!
-        self.P = .005 # 2 ms
+        self.P = .005 # 5 ms
 
 
 
     def setSpeed(self, v,w):
         """ Establece la velocidad del robot v (mm/s), w(rad/s) """
+        print()
         print("setting speed to %.2f %.2f" % (v, w))
+        print()
 
         # compute the speed that should be set in each motor ...
 
@@ -115,13 +117,12 @@ class Robot:
 
                 dSl = 2. * math.pi * self.R * (encoder_l - ant_enconder_l) / 360.
                 dSr = 2. * math.pi * self.R * (encoder_r - ant_enconder_r) / 360.
-                dS = (dSl + dSr) / 2.
-                dth = (dSr - dSl) / self.L
+                dS = (dSl + dSr) / 2. if abs((dSl + dSr) / 2.) >= 1e-6 else 0.0
+                dth = (dSr - dSl) / self.L if abs((dSr - dSl / self.L)) >= 1e-6 else 0.0
 
                 self.lock_odometry.acquire()
                 x, y, th = self.readOdometry()
                 self.lock_odometry.release()
-                
 
                 dx = dS * math.cos(th + (dth / 2.))
                 dy = dS * math.sin(th + (dth / 2.))
@@ -129,6 +130,7 @@ class Robot:
                 self.lock_odometry.acquire()
                 self.x.value += dx
                 self.y.value += dy
+                # print(dSl, dSr, dth)
                 if -math.pi < (th + dth) < math.pi:
                     self.th.value += dth
                 elif -math.pi > (th + dth):
