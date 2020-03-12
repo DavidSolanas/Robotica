@@ -1,5 +1,17 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+
+
+###########################################
+#   Autores: Daniel Cay (741066)          #
+#            Javier Fañanás (737987)      #
+#            David Solanas (738630)       #
+#                                         #
+#   Fichero: p2_base.py                   #
+#   Robótica - Práctica 2                 #
+###########################################
+
+
 from __future__ import print_function # use python 3 syntax but make it compatible with python 2
 from __future__ import division       #                           ''
 
@@ -20,12 +32,9 @@ class Robot:
         Initialize Motors and Sensors according to the set up in your robot
         """
 
-######## UNCOMMENT and FILL UP all you think is necessary (following the suggested scheme) ########
-
         # Robot construction parameters
         self.R = 26 # mm
         self.L = 152 # mm
-        #self. ...
 
         ##################################################
         # Motors and sensors setup
@@ -83,9 +92,11 @@ class Robot:
 
         return 0,0
 
+
     def readOdometry(self):
         """ Returns current value of odometry estimation """
         return self.x.value, self.y.value, self.th.value
+
 
     def startOdometry(self):
         """ This starts a new process/thread that will be updating the odometry periodically """
@@ -94,13 +105,16 @@ class Robot:
         self.p.start()
         print("PID: ", self.p.pid)
 
-    # You may want to pass additional shared variables besides the odometry values and stop flag
+
+    
     def updateOdometry(self):
-        """ To be filled ...  """
+        """ Reads the encoders and updates the position of the robot \
+            X, Y, Theta, it also stores a log with the robot's position. """
 
         ant_enconder_l = 0.
         ant_enconder_r = 0.
         
+        # Opens the log file
         f = open('odometry.log', 'w+')
 
         while not self.finished.value:
@@ -108,15 +122,16 @@ class Robot:
             tIni = time.clock()
 
             # compute updates
-
             try:
                 # Each of the following BP.get_motor_encoder functions returns the encoder value
                 # (what we want to store).
                 [encoder_l, encoder_r] = [self.BP.get_motor_encoder(self.BP.PORT_C),
                     self.BP.get_motor_encoder(self.BP.PORT_B)]
 
+            
                 dSl = 2. * math.pi * self.R * (encoder_l - ant_enconder_l) / 360.
                 dSr = 2. * math.pi * self.R * (encoder_r - ant_enconder_r) / 360.
+
                 dS = (dSl + dSr) / 2.
                 dth = (dSr - dSl) / self.L 
                 
@@ -130,7 +145,8 @@ class Robot:
                 self.lock_odometry.acquire()
                 self.x.value += dx
                 self.y.value += dy
-                # print(dSl, dSr, dth)
+
+                # Normalizes the angle, th always in the range [-pi, pi]
                 if -math.pi < (th + dth) < math.pi:
                     self.th.value += dth
                 elif -math.pi > (th + dth):
@@ -149,9 +165,7 @@ class Robot:
 
 
             # save LOG
-            # Need to decide when to store a log with the updated odometry ...
-
-            ######## UPDATE UNTIL HERE with your code ########
+            # Stores X, Y and theta
             self.lock_odometry.acquire()
             f.write("X=  %.5f, Y=  %.5f, th=  %.5f \n" %(self.x.value, self.y.value, self.th.value))
             self.lock_odometry.release()

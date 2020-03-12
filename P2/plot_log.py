@@ -1,6 +1,15 @@
+###########################################
+#   Autores: Daniel Cay (741066)          #
+#            Javier Fañanás (737987)      #
+#            David Solanas (738630)       #
+#                                         #
+#   Fichero: plot_log.py                   #
+#   Robótica - Práctica 2                 #
+###########################################
+
+
 import numpy as np
 import matplotlib.pyplot as plt
-# import time
 
 
 
@@ -34,23 +43,30 @@ def dibrobot(loc_eje,c,tamano):
 
 
 def read_log(filename):
+  """ Obtiene la información de la localización \
+    a partir del log. """
+
   f = open(filename, 'r')
   lines = f.readlines()
   coords = []
+
   for line in lines:
     line = line.strip()
+
     x = np.float(line.split(",")[0].strip()[3:])
     y = np.float(line.split(",")[1].strip()[3:])
     th = np.float(line.split(",")[2].strip()[3:])
+    
     coords.append([x, y, th])
   
   return coords
 
 
 
-
+# Obtiene todas las coordenadas
 coord = np.array(read_log('odometry_part2.log'))
 
+# Dibuja la trayectoria del robot según el log guardado
 for c in coord:
   dibrobot(c, 'b', 'p')
 
