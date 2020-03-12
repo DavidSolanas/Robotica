@@ -117,9 +117,9 @@ class Robot:
 
                 dSl = 2. * math.pi * self.R * (encoder_l - ant_enconder_l) / 360.
                 dSr = 2. * math.pi * self.R * (encoder_r - ant_enconder_r) / 360.
-                dS = (dSl + dSr) / 2. if abs((dSl + dSr) / 2.) >= 1e-6 else 0.0
-                dth = (dSr - dSl) / self.L if abs((dSr - dSl / self.L)) >= 1e-6 else 0.0
-
+                dS = (dSl + dSr) / 2.
+                dth = (dSr - dSl) / self.L 
+                
                 self.lock_odometry.acquire()
                 x, y, th = self.readOdometry()
                 self.lock_odometry.release()

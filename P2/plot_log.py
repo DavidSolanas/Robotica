@@ -49,7 +49,7 @@ def read_log(filename):
 
 
 
-coord = np.array(read_log('odometry_part1.log'))
+coord = np.array(read_log('odometry_part2.log'))
 
 for c in coord:
   dibrobot(c, 'b', 'p')
