@@ -64,7 +64,7 @@ def read_log(filename):
 
 
 # Obtiene todas las coordenadas
-coord = np.array(read_log('odometry_part2.log'))
+coord = np.array(read_log('odometry.log'))
 
 # Dibuja la trayectoria del robot según el log guardado
 for c in coord:

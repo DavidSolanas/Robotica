@@ -53,14 +53,14 @@ def trajectory_8(robot):
 
         elif estado == 3:
             # estado 3, llega arriba del 8
-            if (-25 <= x <= 25) and (2*d - 25 <= y <= 2*d + 25) and (math.pi - 0.1 <= th <= math.pi + 0.1):
+            if (-25 <= x <= 25) and (2*d - 25 <= y <= 2*d + 25):
                 estado = 4
                 # Actualizar velocidad
                 robot.setSpeed(100*math.pi, math.pi/4.)
 
         elif estado == 4:
             # estado 4, vuelve al centro del 8
-            if (-25 <= x <= 25) and (-25 <= y <= 25) and (-0.1 <= th <= 0.1):
+            if (-15 <= x <= 15) and (-25 <= y <= 25) and (-0.1 <= th <= 0.1):
                 stop = True
         
         time.sleep(0.005)
@@ -160,7 +160,7 @@ def main(args):
 
 
         # PART 1:
-        # trajectory_8(robot)
+        trajectory_8(robot)
         # trajectory_2(robot)
 
 
