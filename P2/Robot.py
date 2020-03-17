@@ -18,7 +18,7 @@ from __future__ import division       #                           ''
 #import brickpi3 # import the BrickPi3 drivers
 import time     # import the time library for the sleep function
 import sys
-import math
+import numpy as np
 import brickpi3
 
 # tambien se podria utilizar el paquete de threading
@@ -51,6 +51,10 @@ class Robot:
         self.BP.offset_motor_encoder(self.BP.PORT_C,
             self.BP.get_motor_encoder(self.BP.PORT_C))
 
+        # reset encoder A-hook
+        self.BP.offset_motor_encoder(self.BP.PORT_A,
+            self.BP.get_motor_encoder(self.BP.PORT_A))
+
         ##################################################
         # odometry shared memory values
         self.x = Value('d',0.0)
@@ -80,8 +84,8 @@ class Robot:
         wd = 1.0/self.R * v + self.L/(2.0 * self.R) * w
         wi = 1.0/self.R * v - self.L/(2.0 * self.R) * w
         
-        speedDPS_right = 180. * wd / math.pi
-        speedDPS_left = 180. * wi / math.pi
+        speedDPS_right = 180. * wd / np.pi
+        speedDPS_left = 180. * wi / np.pi
         
         self.BP.set_motor_dps(self.BP.PORT_B, speedDPS_right)
         self.BP.set_motor_dps(self.BP.PORT_C, speedDPS_left)
@@ -106,6 +110,26 @@ class Robot:
         print("PID: ", self.p.pid)
 
 
+    def norm_pi(self, th):
+        """ Normalizes 'th' to be in range [-pi, pi] """
+        th_norm = th
+        while th_norm > 2 * np.pi:
+            th_norm -= 2 * np.pi
+
+        while th_norm < -2 * np.pi:
+            th_norm += 2 * np.pi
+
+        # Normalizes the angle, th always in the range [-pi, pi]
+        if -np.pi < th_norm < np.pi:
+            return th_norm
+        elif th_norm < -np.pi:
+            th_norm = np.pi - (-np.pi - th_norm)
+            
+        elif th_norm > np.pi:
+            th_norm = -np.pi + (th_norm - np.pi)
+
+        return th_norm
+
     
     def updateOdometry(self):
         """ Reads the encoders and updates the position of the robot \
@@ -129,8 +153,8 @@ class Robot:
                     self.BP.get_motor_encoder(self.BP.PORT_B)]
 
             
-                dSl = 2. * math.pi * self.R * (encoder_l - ant_enconder_l) / 360.
-                dSr = 2. * math.pi * self.R * (encoder_r - ant_enconder_r) / 360.
+                dSl = 2. * np.pi * self.R * (encoder_l - ant_enconder_l) / 360.
+                dSr = 2. * np.pi * self.R * (encoder_r - ant_enconder_r) / 360.
 
                 dS = (dSl + dSr) / 2.
                 dth = (dSr - dSl) / self.L 
@@ -139,21 +163,16 @@ class Robot:
                 x, y, th = self.readOdometry()
                 self.lock_odometry.release()
 
-                dx = dS * math.cos(th + (dth / 2.))
-                dy = dS * math.sin(th + (dth / 2.))
+                dx = dS * np.cos(th + (dth / 2.))
+                dy = dS * np.sin(th + (dth / 2.))
+
+                # Normalizes the angle, th always in the range [-pi, pi]
+                dth = self.norm_pi(th + dth)
 
                 self.lock_odometry.acquire()
                 self.x.value += dx
                 self.y.value += dy
-
-                # Normalizes the angle, th always in the range [-pi, pi]
-                if -math.pi < (th + dth) < math.pi:
-                    self.th.value += dth
-                elif -math.pi > (th + dth):
-                    self.th.value = math.pi - (-math.pi - (th + dth))
-                elif math.pi < (th + dth):
-                    self.th.value = -math.pi + ((th + dth) - math.pi)
-                
+                self.th.value = dth
                 self.lock_odometry.release()
 
                 ant_enconder_l = encoder_l
