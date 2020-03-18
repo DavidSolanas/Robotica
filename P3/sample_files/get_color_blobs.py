@@ -6,7 +6,7 @@ import cv2
 import numpy as np;
 
 # Read image
-img_BGR = cv2.imread("red_blue.jpg")
+img_BGR = cv2.imread("media/objetivo.jpg")
 #img_BGR = cv2.imread("many.jpg")
 
 # Setup default values for SimpleBlobDetector parameters.
@@ -41,44 +41,32 @@ if int(ver[0]) < 3 :
 else :
 	detector = cv2.SimpleBlobDetector_create(params)
 
-# keypoints on original image (will look for blobs in grayscale)
-keypoints = detector.detect(img_BGR)
-# Draw detected blobs as red circles.
-# cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
-# the size of the circle corresponds to the size of blob
-im_with_keypoints = cv2.drawKeypoints(img_BGR, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+# filter certain RED COLOR channels
 
-# Show blobs
-cv2.imshow("Keypoints on Gray Scale", im_with_keypoints)
-cv2.waitKey(0)
+# Pixels with 0 <= H <= 10, 170 <= H <= 180, 
+# 70 <= S <= 255, 50 <= V <= 255 will be considered red.
 
-# filter certain COLOR channels
-
-# Pixels with 100 <= R <= 255, 15 <= B <= 56, 17 <= G <= 50 will be considered red.
-# similar for BLUE
+img_HSV = cv2.cvtColor(img_BGR, cv2.COLOR_BGR2HSV)
 
 # BY DEFAULT, opencv IMAGES have BGR format
-redMin = (10, 10, 100)
-redMax = (50, 50, 255)
+redMin1 = (0, 70, 50)
+redMax1 = (10, 255, 255)
+redMin2 = (170, 70, 50)
+redMax2 = (180, 255, 255)
 
-blueMin=(60, 10, 10)
-blueMax=(255, 100, 100)
-
-mask_red=cv2.inRange(img_BGR, redMin, redMax)
-mask_blue=cv2.inRange(img_BGR, blueMin, blueMax)
+# Create RED mask in HSV colorspace
+mask_red1=cv2.inRange(img_HSV, redMin1, redMax1)
+mask_red2 = cv2.inRange(img_HSV, redMin2, redMax2)
+mask_red = mask_red1 + mask_red2
 
 
 # apply the mask
-red = cv2.bitwise_and(img_BGR, img_BGR, mask = mask_red)
-blue = cv2.bitwise_and(img_BGR, img_BGR, mask = mask_blue)
+red = cv2.bitwise_and(img_HSV, img_BGR, mask = mask_red)
 # show resulting filtered image next to the original one
 cv2.imshow("Red regions", np.hstack([img_BGR, red]))
-cv2.imshow("Blue regions", np.hstack([img_BGR, blue]))
 
-
-# detector finds "dark" blobs by default, so invert image for results with same detector
-keypoints_red = detector.detect(255-mask_red)
-keypoints_blue = detector.detect(255-mask_blue)
+# detector finds "dark" blobs by default
+keypoints_red = detector.detect(mask_red)
 
 # documentation of SimpleBlobDetector is not clear on what kp.size is exactly, but it looks like the diameter of the blob.
 for kp in keypoints_red:
@@ -89,11 +77,8 @@ for kp in keypoints_red:
 # the size of the circle corresponds to the size of blob
 im_with_keypoints = cv2.drawKeypoints(img_BGR, keypoints_red, np.array([]),
 	(255,255,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-im_with_keypoints2 = cv2.drawKeypoints(img_BGR, keypoints_blue, np.array([]),
-	(255,255,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
 # Show mask and blobs found
 cv2.imshow("Keypoints on RED", im_with_keypoints)
-cv2.imshow("Keypoints on BLUE", im_with_keypoints2)
 cv2.waitKey(0)
 
