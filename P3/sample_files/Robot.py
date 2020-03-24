@@ -286,7 +286,6 @@ class Robot:
         x_blob = -1
         y_blob = -1
         area_blob = -1
-        area_blob_ant = -1
         x_blob_ant = -1
         # First search the red ball
         x_blob, y_blob, area_blob = self.search_ball(np.pi / 2)
@@ -309,11 +308,7 @@ class Robot:
             v = 100
 
             self.setSpeed(v, w)
-            # print(area_blob_ant, area_blob)
             print(x_blob, y_blob)
-            stop = area_blob_ant > area_blob
-            # print(stop, '\n')
-            area_blob_ant = area_blob
             x_blob_ant = x_blob
             time.sleep(.002)
         
