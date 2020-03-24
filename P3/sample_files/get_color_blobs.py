@@ -6,7 +6,7 @@ import cv2
 import numpy as np;
 
 # Read image
-img_BGR = cv2.imread("media/objetivo.jpg")
+img_BGR = cv2.imread("a.jpg")
 #img_BGR = cv2.imread("many.jpg")
 
 # Setup default values for SimpleBlobDetector parameters.
@@ -69,6 +69,7 @@ cv2.imshow("Red regions", np.hstack([img_BGR, red]))
 keypoints_red = detector.detect(mask_red)
 
 # documentation of SimpleBlobDetector is not clear on what kp.size is exactly, but it looks like the diameter of the blob.
+print(keypoints_red)
 for kp in keypoints_red:
 	print(kp.pt[0], kp.pt[1], kp.size)
 

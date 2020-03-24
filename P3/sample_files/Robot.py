@@ -20,6 +20,9 @@ import time     # import the time library for the sleep function
 import sys
 import numpy as np
 import brickpi3
+import cv2
+import picamera
+from picamera.array import PiRGBArray
 
 # tambien se podria utilizar el paquete de threading
 from multiprocessing import Process, Value, Array, Lock
@@ -64,12 +67,18 @@ class Robot:
 
         # if we want to block several instructions to be run together, we may want to use an explicit Lock
         self.lock_odometry = Lock()
-        #self.lock_odometry.acquire()
-        #print('hello world', i)
-        #self.lock_odometry.release()
+
+        # Initialize camera
+        self.cam = picamera.PiCamera()
+        self.cam.resolution = (320, 240)
+        # It'll contain the photo
+        self.rawCapture = PiRGBArray(self.cam, size=(320, 240))
 
         # odometry update period --> UPDATE value!
         self.P = .005 # 5 ms
+        
+        # allow the camera to warmup
+        time.sleep(0.1)
 
 
 
@@ -77,7 +86,6 @@ class Robot:
         """ Establece la velocidad del robot v (mm/s), w(rad/s) """
         print()
         print("setting speed to %.2f %.2f" % (v, w))
-        print()
 
         # compute the speed that should be set in each motor ...
 
@@ -191,3 +199,128 @@ class Robot:
         self.finished.value = True
         self.BP.reset_all()
 
+
+    # Get an image
+    def get_photo(self):
+        self.cam.capture(self.rawCapture, 'bgr')
+        frame = self.rawCapture.array
+        # cv2.imshow('imagen', frame)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        self.rawCapture.truncate(0)
+        # cv2.waitKey()
+        return frame
+
+
+    def detect_blobs(self, frame, redMin1=(0, 70, 50), redMax1=(10, 255, 255),
+                     redMin2=(170, 70, 50), redMax2=(180, 255, 255)):
+
+        params = cv2.SimpleBlobDetector_Params()
+        # These are just examples, tune your own if needed
+        # Change thresholds
+        params.minThreshold = 10
+        params.maxThreshold = 200
+
+        # Filter by Area
+        params.filterByArea = True
+        params.minArea = 200
+        params.maxArea = 10000
+
+        # Filter by Circularity
+        params.filterByCircularity = True
+        params.minCircularity = 0.1
+
+        # Filter by Color
+        params.filterByColor = False
+        # not directly color, but intensity on the channel input
+        #params.blobColor = 0
+        params.filterByConvexity = False
+        params.filterByInertia = False
+
+
+        # Create a detector with the parameters
+        ver = (cv2.__version__).split('.')
+        if int(ver[0]) < 3 :
+            detector = cv2.SimpleBlobDetector(params)
+        else :
+            detector = cv2.SimpleBlobDetector_create(params)
+
+        # filter certain RED COLOR channels
+
+        # Pixels with 0 <= H <= 10, 170 <= H <= 180, 
+        # 70 <= S <= 255, 50 <= V <= 255 will be considered red.
+        # Create RED mask in HSV colorspace
+        mask_red1=cv2.inRange(frame, redMin1, redMax1)
+        mask_red2 = cv2.inRange(frame, redMin2, redMax2)
+        mask_red = mask_red1 + mask_red2
+        
+        # detector finds "dark" blobs by default
+        keypoints_red = detector.detect(mask_red)
+
+        # documentation of SimpleBlobDetector is not clear on what kp.size is exactly, but it looks like the diameter of the blob.
+        print(len(keypoints_red))
+        if len(keypoints_red) == 0:
+            return False, -1, -1, -1
+
+        for kp in keypoints_red:
+            return True, kp.pt[0], kp.pt[1], kp.size
+
+        return False, -1, -1, -1
+
+
+    def search_ball(self, w):
+        found = False
+        while not found:
+            frame = self.get_photo()
+            found, x_blob, y_blob, area_blob = self.detect_blobs(frame)
+            print(found)
+            if not found:
+                self.setSpeed(0, w)
+            else:
+                self.setSpeed(0,0)
+            time.sleep(.002)
+        print('FIN')
+        return x_blob, y_blob, area_blob
+
+
+    def trackObject(self, colorRange=[(0, 70, 50), (10, 255, 255), (170, 70, 50), (180, 255, 255)]):
+        x_blob = -1
+        y_blob = -1
+        area_blob = -1
+        area_blob_ant = -1
+        x_blob_ant = -1
+        # First search the red ball
+        x_blob, y_blob, area_blob = self.search_ball(np.pi / 2)
+        stop = False
+        frames = []
+        while (y_blob < 220):
+            frame = self.get_photo()
+            frames.append(frame)
+            visible, x_blob, y_blob, area_blob = self.detect_blobs(frame)
+            print(visible)
+            if not visible:
+                if x_blob_ant > 160:
+                    w = -np.pi / 2
+                else:
+                    w = np.pi / 2
+                x_blob, y_blob, area_blob = self.search_ball(w)
+
+            offset = 160 - x_blob
+            w = offset * .002
+            v = 100
+
+            self.setSpeed(v, w)
+            # print(area_blob_ant, area_blob)
+            print(x_blob, y_blob)
+            stop = area_blob_ant > area_blob
+            # print(stop, '\n')
+            area_blob_ant = area_blob
+            x_blob_ant = x_blob
+            time.sleep(.002)
+        
+        self.setSpeed(0, 0)
+        print(x_blob, y_blob, area_blob)
+        for f in frames:
+            f = cv2.cvtColor(f, cv2.COLOR_HSV2BGR)
+            cv2.imshow('a', f)
+            cv2.waitKey()
+        return True

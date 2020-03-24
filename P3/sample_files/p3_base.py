@@ -5,10 +5,11 @@ import cv2
 import numpy as np
 import time
 from Robot import Robot
+import math
 
 def main(args):
     try:
-        if args.radioD < 0:
+        if 0 < 0:
             print('d must be a positive value')
             exit(1)
 
@@ -16,7 +17,7 @@ def main(args):
         robot = Robot() 
         # 1. launch updateOdometry thread()
         robot.startOdometry()
-
+        
         # 2. Loop running the tracking until ??, then catch the ball
         # TO-DO: ADD to the Robot class a method to track an object, given certain parameters
         # for example the different target properties we want (size, position, color, ..)
@@ -24,7 +25,10 @@ def main(args):
         # At least COLOR, the rest are up to you, but always put a default value.
     	# res = robot.trackObject(colorRangeMin=[0,0,0], colorRangeMax=[255,255,255], 
         #                   targetSize=??, target??=??, ...)
+        
 
+
+        robot.trackObject()
         # if res:
         #   robot.catch
 
