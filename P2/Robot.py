@@ -113,20 +113,11 @@ class Robot:
     def norm_pi(self, th):
         """ Normalizes 'th' to be in range [-pi, pi] """
         th_norm = th
-        while th_norm > 2 * np.pi:
+        while th_norm > np.pi:
             th_norm -= 2 * np.pi
 
-        while th_norm < -2 * np.pi:
+        while th_norm < -np.pi:
             th_norm += 2 * np.pi
-
-        # Normalizes the angle, th always in the range [-pi, pi]
-        if -np.pi < th_norm < np.pi:
-            return th_norm
-        elif th_norm < -np.pi:
-            th_norm = np.pi - (-np.pi - th_norm)
-            
-        elif th_norm > np.pi:
-            th_norm = -np.pi + (th_norm - np.pi)
 
         return th_norm
 
