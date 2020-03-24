@@ -26,9 +26,15 @@ def main(args):
     	# res = robot.trackObject(colorRangeMin=[0,0,0], colorRangeMax=[255,255,255], 
         #                   targetSize=??, target??=??, ...)
         
-
-
         robot.trackObject()
+        robot.catch()
+        robot.setSpeed(-400, np.pi/4)
+        time.sleep(1)
+        robot.setSpeed(0, 0)
+        time.sleep(0.1)
+        robot.release()
+
+        #robot.trackObject()
         # if res:
         #   robot.catch
 

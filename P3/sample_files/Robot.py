@@ -314,8 +314,22 @@ class Robot:
         
         self.setSpeed(0, 0)
         print(x_blob, y_blob, area_blob)
+        """
         for f in frames:
             f = cv2.cvtColor(f, cv2.COLOR_HSV2BGR)
             cv2.imshow('a', f)
             cv2.waitKey()
+        """
         return True
+
+
+    def catch(self):
+        self.BP.set_motor_dps(self.BP.PORT_A, -120)
+        time.sleep(1)
+        self.BP.set_motor_dps(self.BP.PORT_A, 0)
+
+
+    def release(self):
+        self.BP.set_motor_dps(self.BP.PORT_A, 120)
+        time.sleep(1)
+        self.BP.set_motor_dps(self.BP.PORT_A, 0)
