@@ -28,7 +28,7 @@ def main(args):
         
         robot.trackObject()
         robot.catch()
-        robot.setSpeed(-400, np.pi/4)
+        robot.setSpeed(-400, 0)
         time.sleep(1)
         robot.setSpeed(0, 0)
         time.sleep(0.1)

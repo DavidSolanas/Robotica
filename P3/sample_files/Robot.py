@@ -202,6 +202,7 @@ class Robot:
 
     # Get an image
     def get_photo(self):
+        """ Captures an image and converts to HSV colorspace """
         self.cam.capture(self.rawCapture, 'bgr')
         frame = self.rawCapture.array
         # cv2.imshow('imagen', frame)
@@ -213,7 +214,8 @@ class Robot:
 
     def detect_blobs(self, frame, redMin1=(0, 70, 50), redMax1=(10, 255, 255),
                      redMin2=(170, 70, 50), redMax2=(180, 255, 255)):
-
+        """ Given an image and color ranges in HSV colorspace, detects blobs
+            in the image that corresponds to that color """
         params = cv2.SimpleBlobDetector_Params()
         # These are just examples, tune your own if needed
         # Change thresholds
@@ -257,10 +259,6 @@ class Robot:
         keypoints_red = detector.detect(mask_red)
 
         # documentation of SimpleBlobDetector is not clear on what kp.size is exactly, but it looks like the diameter of the blob.
-        print(len(keypoints_red))
-        if len(keypoints_red) == 0:
-            return False, -1, -1, -1
-
         for kp in keypoints_red:
             return True, kp.pt[0], kp.pt[1], kp.size
 
@@ -268,6 +266,8 @@ class Robot:
 
 
     def search_ball(self, w):
+        """ Rotates the robot at w rad/s until it recognises a red ball,
+            when the red ball is detected the robot stops """
         found = False
         while not found:
             frame = self.get_photo()
@@ -277,8 +277,9 @@ class Robot:
                 self.setSpeed(0, w)
             else:
                 self.setSpeed(0,0)
+                break
             time.sleep(.002)
-        print('FIN')
+
         return x_blob, y_blob, area_blob
 
 
@@ -288,19 +289,19 @@ class Robot:
         area_blob = -1
         x_blob_ant = -1
         # First search the red ball
-        x_blob, y_blob, area_blob = self.search_ball(np.pi / 2)
+        x_blob, y_blob, area_blob = self.search_ball(np.pi / 3)
         stop = False
         frames = []
-        while (y_blob < 220):
+        while (y_blob < 215):
             frame = self.get_photo()
             frames.append(frame)
             visible, x_blob, y_blob, area_blob = self.detect_blobs(frame)
-            print(visible)
+
             if not visible:
                 if x_blob_ant > 160:
-                    w = -np.pi / 2
+                    w = -np.pi / 3
                 else:
-                    w = np.pi / 2
+                    w = np.pi / 3
                 x_blob, y_blob, area_blob = self.search_ball(w)
 
             offset = 160 - x_blob
@@ -308,18 +309,24 @@ class Robot:
             v = 100
 
             self.setSpeed(v, w)
-            print(x_blob, y_blob)
             x_blob_ant = x_blob
             time.sleep(.002)
         
         self.setSpeed(0, 0)
-        print(x_blob, y_blob, area_blob)
-        """
-        for f in frames:
-            f = cv2.cvtColor(f, cv2.COLOR_HSV2BGR)
-            cv2.imshow('a', f)
-            cv2.waitKey()
-        """
+        #CENTRAR
+        centrado = False
+        while not centrado:
+            frame = self.get_photo()
+            visible, x_blob, y_blob, area_blob = self.detect_blobs(frame)
+            offset = 160 - x_blob
+            w = offset * .0035
+            v = 0
+            self.setSpeed(v, w)
+            centrado = abs(offset) < 10
+            time.sleep(0.0035)
+        self.setSpeed(40, 0)
+        time.sleep(0.5)
+        self.setSpeed(0, 0)
         return True
 
 
