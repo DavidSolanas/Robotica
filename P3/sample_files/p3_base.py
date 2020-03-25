@@ -1,5 +1,16 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+
+
+###########################################
+#   Autores: Daniel Cay (741066)          #
+#            Javier Fañanás (737987)      #
+#            David Solanas (738630)       #
+#                                         #
+#   Fichero: p3_base.py                   #
+#   Robótica - Práctica 3                 #
+###########################################
+
 import argparse
 import cv2
 import numpy as np
@@ -25,18 +36,19 @@ def main(args):
         # At least COLOR, the rest are up to you, but always put a default value.
     	# res = robot.trackObject(colorRangeMin=[0,0,0], colorRangeMax=[255,255,255], 
         #                   targetSize=??, target??=??, ...)
-        
+
+        # Track the object until the robot is close enough
         robot.trackObject()
+        # Catch the object
         robot.catch()
+        # Retreat a little
         robot.setSpeed(-400, 0)
         time.sleep(1)
+        # Stops the robot
         robot.setSpeed(0, 0)
         time.sleep(0.1)
+        # Release the box
         robot.release()
-
-        #robot.trackObject()
-        # if res:
-        #   robot.catch
 
         # 3. wrap up and close stuff ...
         # This currently unconfigure the sensors, disable the motors, 

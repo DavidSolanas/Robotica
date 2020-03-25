@@ -1,3 +1,16 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
+
+###########################################
+#   Autores: Daniel Cay (741066)          #
+#            Javier Fañanás (737987)      #
+#            David Solanas (738630)       #
+#                                         #
+#   Fichero: get_photos.py                #
+#   Robótica - Práctica 3                 #
+###########################################
+
 import cv2
 import picamera
 from picamera.array import PiRGBArray

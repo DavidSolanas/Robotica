@@ -1,5 +1,15 @@
-# -*- coding: utf-8 -*-
 #!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
+
+###########################################
+#   Autores: Daniel Cay (741066)          #
+#            Javier Fañanás (737987)      #
+#            David Solanas (738630)       #
+#                                         #
+#   Fichero: get_color_blobs.py           #
+#   Robótica - Práctica 3                 #
+###########################################
 
 # Standard imports
 import cv2

@@ -3,8 +3,8 @@
 #            Javier Fañanás (737987)      #
 #            David Solanas (738630)       #
 #                                         #
-#   Fichero: plot_log.py                   #
-#   Robótica - Práctica 2                 #
+#   Fichero: plot_log.py                  #
+#   Robótica - Práctica 3                 #
 ###########################################
 
 

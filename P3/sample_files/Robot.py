@@ -7,8 +7,8 @@
 #            Javier Fañanás (737987)      #
 #            David Solanas (738630)       #
 #                                         #
-#   Fichero: p2_base.py                   #
-#   Robótica - Práctica 2                 #
+#   Fichero: Robot.py                     #
+#   Robótica - Práctica 3                 #
 ###########################################
 
 
@@ -107,7 +107,12 @@ class Robot:
 
     def readOdometry(self):
         """ Returns current value of odometry estimation """
-        return self.x.value, self.y.value, self.th.value
+        self.lock_odometry.acquire()
+        x = self.x.value
+        y = self.y.value
+        th = self.th.value
+        self.lock_odometry.release()
+        return x, y, th
 
 
     def startOdometry(self):
@@ -158,9 +163,7 @@ class Robot:
                 dS = (dSl + dSr) / 2.
                 dth = (dSr - dSl) / self.L 
                 
-                self.lock_odometry.acquire()
                 x, y, th = self.readOdometry()
-                self.lock_odometry.release()
 
                 dx = dS * np.cos(th + (dth / 2.))
                 dy = dS * np.sin(th + (dth / 2.))
@@ -284,59 +287,85 @@ class Robot:
 
 
     def trackObject(self, colorRange=[(0, 70, 50), (10, 255, 255), (170, 70, 50), (180, 255, 255)]):
+        """ Tracks the object with a specific color 'colorRange', it follows the object
+            taking pictures and searching for blobs with that color. When it founds one,
+            the robot approaches to the blob until it is close enough to the blob, then
+            the robot centers the blob and stop. """
         x_blob = -1
         y_blob = -1
         area_blob = -1
+        # Variable to know where to rotate when the blob is lost
         x_blob_ant = -1
-        # First search the red ball
+        # First search the blob
         x_blob, y_blob, area_blob = self.search_ball(np.pi / 3)
         stop = False
-        frames = []
-        while (y_blob < 215):
-            frame = self.get_photo()
-            frames.append(frame)
-            visible, x_blob, y_blob, area_blob = self.detect_blobs(frame)
 
+        # Approach to the blob until it's close enough
+        while (y_blob < 215):
+            # Get a photo
+            frame = self.get_photo()
+            # Search the blob and get its coordinates in the image
+            visible, x_blob, y_blob, area_blob = self.detect_blobs(frame)
+            # Check if is visible or not, if not then search the blob again
             if not visible:
+                # Check if the robot has to rotate to left or right
                 if x_blob_ant > 160:
+                    # Rotate to right
                     w = -np.pi / 3
                 else:
+                    # Rotate to left
                     w = np.pi / 3
+                # Search again the blob
                 x_blob, y_blob, area_blob = self.search_ball(w)
 
+            # Calculate the offset of the blob from the center of the image
             offset = 160 - x_blob
+            # Assign the velocities, offset * .002 because .002 is the period of
+            # the loop
             w = offset * .002
             v = 100
-
+            # Set the robot's speed
             self.setSpeed(v, w)
             x_blob_ant = x_blob
+            # Sleep .002 seconds
             time.sleep(.002)
         
+        # In this point the robot is close enough to the blob, recenter the robot
+        # and get a little closer to the blob. Fitst of all, stop the robot
         self.setSpeed(0, 0)
-        #CENTRAR
-        centrado = False
-        while not centrado:
+
+        centered = False
+        # Center the blob in the middle of the image
+        while not centered:
+            # Take a photo
             frame = self.get_photo()
+            # Detect the blob
             visible, x_blob, y_blob, area_blob = self.detect_blobs(frame)
+            # Rotate the robot to center the blob
             offset = 160 - x_blob
             w = offset * .0035
             v = 0
             self.setSpeed(v, w)
-            centrado = abs(offset) < 10
+            # Check if the blob has been centered
+            centered = abs(offset) < 10
+            # Sleep .0035 seconds
             time.sleep(0.0035)
+
+        # Get a little closer to the blob
         self.setSpeed(40, 0)
         time.sleep(0.5)
         self.setSpeed(0, 0)
-        return True
 
 
     def catch(self):
+        """ Catches the ball dropping the box """
         self.BP.set_motor_dps(self.BP.PORT_A, -120)
         time.sleep(1)
         self.BP.set_motor_dps(self.BP.PORT_A, 0)
 
 
     def release(self):
+        """ Releases the ball lifting the box """
         self.BP.set_motor_dps(self.BP.PORT_A, 120)
         time.sleep(1)
         self.BP.set_motor_dps(self.BP.PORT_A, 0)
