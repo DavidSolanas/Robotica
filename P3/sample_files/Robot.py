@@ -262,25 +262,36 @@ class Robot:
         keypoints_red = detector.detect(mask_red)
 
         # documentation of SimpleBlobDetector is not clear on what kp.size is exactly, but it looks like the diameter of the blob.
+        kp_size = -1
+        kp_ball = None
+        # Stores the blob with biggest area
         for kp in keypoints_red:
-            return True, kp.pt[0], kp.pt[1], kp.size
+            if kp.size > kp_size:
+                kp_ball = kp
+                kp_size = kp.size
 
-        return False, -1, -1, -1
+        if kp_ball is None:
+            return False, -1, -1, -1
+        
+        return True, kp_ball.pt[0], kp_ball.pt[1], kp_ball.size
 
 
     def search_ball(self, w):
         """ Rotates the robot at w rad/s until it recognises a red ball,
             when the red ball is detected the robot stops """
         found = False
-        while not found:
+        # Maximum number of loops
+        count = 0
+        while not found and count < (10 * np.pi):
             frame = self.get_photo()
             found, x_blob, y_blob, area_blob = self.detect_blobs(frame)
-            print(found)
+
             if not found:
                 self.setSpeed(0, w)
             else:
                 self.setSpeed(0,0)
                 break
+            count += abs(w) * .002
             time.sleep(.002)
 
         return x_blob, y_blob, area_blob
@@ -298,10 +309,11 @@ class Robot:
         x_blob_ant = -1
         # First search the blob
         x_blob, y_blob, area_blob = self.search_ball(np.pi / 3)
-        stop = False
+        stop_y = False
+        stop_x = False
 
         # Approach to the blob until it's close enough
-        while (y_blob < 215):
+        while (not stop_y) or (not stop_x):
             # Get a photo
             frame = self.get_photo()
             # Search the blob and get its coordinates in the image
@@ -320,39 +332,29 @@ class Robot:
 
             # Calculate the offset of the blob from the center of the image
             offset = 160 - x_blob
+
+            # Recalculate stop conditions
+            stop_y = y_blob > 200
+            stop_x = abs(offset) < 7
+
             # Assign the velocities, offset * .002 because .002 is the period of
             # the loop
-            w = offset * .002
-            v = 100
+            w = offset * .002 if not stop_x else 0
+            v = 100 if not stop_y else 0
             # Set the robot's speed
             self.setSpeed(v, w)
             x_blob_ant = x_blob
+
             # Sleep .002 seconds
             time.sleep(.002)
         
         # In this point the robot is close enough to the blob, recenter the robot
         # and get a little closer to the blob. Fitst of all, stop the robot
         self.setSpeed(0, 0)
-
-        centered = False
-        # Center the blob in the middle of the image
-        while not centered:
-            # Take a photo
-            frame = self.get_photo()
-            # Detect the blob
-            visible, x_blob, y_blob, area_blob = self.detect_blobs(frame)
-            # Rotate the robot to center the blob
-            offset = 160 - x_blob
-            w = offset * .0035
-            v = 0
-            self.setSpeed(v, w)
-            # Check if the blob has been centered
-            centered = abs(offset) < 10
-            # Sleep .0035 seconds
-            time.sleep(0.0035)
+        time.sleep(0.001)
 
         # Get a little closer to the blob
-        self.setSpeed(40, 0)
+        self.setSpeed(165, 0)
         time.sleep(0.5)
         self.setSpeed(0, 0)
 
