@@ -465,7 +465,7 @@ class Map2D:
         minX=x_ini
         minY=y_ini		
 
-
+        #findPath
         while self.costMatrix[minX,minY] != 0:
             if self.costMatrix[x-1,y] != -1 and self.costMatrix[x-2,y] < self.costMatrix[minX,minY]:
                 minX = x-2		
@@ -486,15 +486,104 @@ class Map2D:
             
             self.currentPath[index] = [x,y]
 
-            index+=1			
-        
+            index+=1	
 
+        
+        self.move(robot)
 
         pathFound = True
 
         # ????
 
         return pathFound
+    
+
+    def calculatePosition(self,x,y):
+        divX = x / self.sizeCell	
+        restoX = divX - int(divX)	
+
+        divY = y / self.sizeCell
+        restoY = divY - int(divY)
+
+        if abs(restoX) > .90:
+            resultX = (int(divX) + 1)*2 if divX > 0 else (int(divX) - 1)*2
+        else:   
+            resultX = int(divX)*2
+        
+        if abs(restoY) > .90:
+            resultY = (int(divY) + 1)*2 if divY > 0 else (int(divY) - 1)*2
+        else:   
+            resultY = int(divY)*2
+
+
+        return resultX,resultY
+
+    def calculateOrientation(self,th):
+        angle=0
+
+        if -np.pi/4 < th <= np.pi/4:
+            angle = 0
+        elif np.pi/4 < angulo <= 3*np.pi/4:
+            angle = np.pi/2
+        elif -3*np.pi/4 <= angulo <= -np.pi/4:
+            angle = -np.pi/2
+        else:
+            angle = np.pi
+
+        return angle
+
+
+    def go(self,x_goal, y_goal, robot):
+        x,y,th=robot.readOdometry()
+
+        currentX,currentY=self.calculatePosition(x,y)
+        currentX+=self.point_ini[0]
+        currentY+=self.point_ini[1]
+
+        currentTh = self.calculateOrientation(th)
+
+        vertical = y_goal - currentY
+        horizontal = x_goal - currentX
+        angle=0
+
+        if horizontal == 0:
+            angle = np.pi/2 - currentTh if vertical > 0 else -np.pi/2 - currentTh
+        else:
+            if horizontal > 0:
+                angle = 0 - currentTh 
+            else:
+                angle =  -np.pi - currentTh if currentTh < 0 else np.pi - currentTh
+                
+        
+        robot.setSpeed(0,angle)
+        while angle-0.05 < th < angle+0.05: 
+            _,_,th=robot.readOdometry(x,y,th)
+            time.sleep(0.005)
+        
+        robot.setSpeed(0,0)
+        time.sleep(0.001)
+
+        self.detectObstacle()
+
+
+        robot.setSpeed(150,0)
+
+        while currentX != x_goal and currentY != y_goal:
+            x,y,th=robot.readOdometry(x,y,th)
+            currentX,currentY=self.calculatePosition(x,y)
+            currentX+=self.point_ini[0]
+            currentY+=self.point_ini[1]
+            time.sleep(0.005)
+
+    
+    def move(self,robot):
+        index=0
+        stop=False
+        obstacle=False
+
+        while not stop:
+            go(self.currentPath[index][0],self.currentPath[index][1], robot) 
+    
 
 
     # def replanPath(self, ??):

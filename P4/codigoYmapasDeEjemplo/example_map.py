@@ -31,7 +31,7 @@ def main(args):
 
         map_file = args.mapfile;
         # Instantiate Odometry with your own files from P2/P3
-        # robot = Robot()
+        #robot = Robot()
         # ...
 
         # 1. load map and compute costs and path
@@ -60,8 +60,8 @@ def main(args):
         #sampleRobotLocations = [ [200, 200, 3.14/2.0], [200, 600, 3.14/4.0], [200, 1000, -3.14/2.0],  ]
         #myMap.drawMapWithRobotLocations( sampleRobotLocations, saveSnapshot=False )
 
-        point_ini=np.array([1,1])
-        point_end=np.array([5,1])
+        point_ini=np.array([5,1])
+        point_end=np.array([1,1])
         myMap.findPath(point_ini,point_end)
         print(myMap.costMatrix.transpose())
         myMap.drawMap(saveSnapshot=False)
