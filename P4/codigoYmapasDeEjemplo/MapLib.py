@@ -394,36 +394,33 @@ class Map2D:
     # METHODS to IMPLEMENT in P4
     # ############################################################
 
+    #Calculate the weight of the grids
     def fillCostMatrixR(self,x_end, y_end, cost):
-        #Comprueba si es una celda válida y si el cost que ya hay es mayor.
+        #right
         if self.costMatrix[x_end+1,y_end] != -1 and x_end+2 <= 2*self.sizeX:
             if self.costMatrix[x_end+2,y_end] < -1 or self.costMatrix[x_end+2,y_end] > cost:
-                #Asigna el cost y realiza la llamada recursiva.
                 self.costMatrix[x_end+2,y_end] = cost
                 self.fillCostMatrixR(x_end+2,y_end, cost+1)
 
-        #Comprueba si es una celda válida y si el cost que ya hay es mayor.
+        #left
         if self.costMatrix[x_end-1,y_end] != -1 and x_end-2 >= 0:
             if self.costMatrix[x_end-2,y_end] < -1 or self.costMatrix[x_end-2,y_end] > cost:
-                #Asigna el cost y realiza la llamada recursiva.
                 self.costMatrix[x_end-2,y_end] = cost
                 self.fillCostMatrixR(x_end-2,y_end, cost+1)
 
-        #Comprueba si es una celda válida y si el cost que ya hay es mayor.
+        #top
         if self.costMatrix[x_end,y_end+1] != -1 and y_end+2 <= 2*self.sizeY:
             if self.costMatrix[x_end,y_end+2] < -1 or self.costMatrix[x_end,y_end+2] > cost:
-                #Asigna el cost y realiza la llamada recursiva.
                 self.costMatrix[x_end,y_end+2] = cost
                 self.fillCostMatrixR(x_end,y_end+2, cost+1)
 
-        #Comprueba si es una celda válida y si el cost que ya hay es mayor.
+        #down
         if self.costMatrix[x_end,y_end-1] != -1 and y_end-2 >= 0:
             if self.costMatrix[x_end,y_end-2] < -1 or self.costMatrix[x_end,y_end-2] > cost:
-                #Asigna el cost y realiza la llamada recursiva.
                 self.costMatrix[x_end,y_end-2] = cost
                 self.fillCostMatrixR(x_end,y_end-2, cost+1)
 
-
+    #Part 1 and 2 of NF1 algorithm (initialize costMatrix and assign weights to the grids)
     def fillCostMatrix(self, point_ini, point_end):
         #NOTE: Make sure self.costMatrix is a 2D numpy array of dimensions dimX x dimY
 
@@ -456,6 +453,7 @@ class Map2D:
         point_end=[x_end,y_end]
         self.fillCostMatrix(point_ini,point_end)
 
+        #Minimum moves for getting the goal 
         num_steps = int(self.costMatrix[x_ini,y_ini])
         self.currentPath = np.array( [ [0,0] ] * num_steps )
 
@@ -465,25 +463,31 @@ class Map2D:
         minX=x_ini
         minY=y_ini		
 
-        #findPath
+        #Finding the best path from the start to the goal
         while self.costMatrix[minX,minY] != 0:
+            #left
             if self.costMatrix[x-1,y] != -1 and self.costMatrix[x-2,y] < self.costMatrix[minX,minY]:
                 minX = x-2		
 
+            #right
             elif self.costMatrix[x+1,y] != -1 and self.costMatrix[x+2,y] < self.costMatrix[minX,minY]:
                 minX = x+2	
             
+            #down
             elif self.costMatrix[x,y-1] != -1 and self.costMatrix[x,y-2] < self.costMatrix[minX,minY]:
                 minY = y-2		
             
+            #top
             elif self.costMatrix[x,y+1] != -1 and self.costMatrix[x,y+2] < self.costMatrix[minX,minY]:
                 minY = y+2	
             
+            #draw the best path
             self.costMatrix[x,y] = 100-index		
             
             x = minX
             y = minY
             
+            #save the path´s positions
             self.currentPath[index] = [x,y]
 
             index+=1	
@@ -497,7 +501,7 @@ class Map2D:
 
         return pathFound
     
-
+    #Obtain the current robot´s position with the odometry
     def calculatePosition(self,x,y):
         divX = x / self.sizeCell	
         restoX = divX - int(divX)	
@@ -505,11 +509,13 @@ class Map2D:
         divY = y / self.sizeCell
         restoY = divY - int(divY)
 
+        #If we are almost in the next grid, let´s go to it
         if abs(restoX) > .90:
             resultX = (int(divX) + 1)*2 if divX > 0 else (int(divX) - 1)*2
         else:   
             resultX = int(divX)*2
         
+        #If we are almost in the next grid, let´s go to it
         if abs(restoY) > .90:
             resultY = (int(divY) + 1)*2 if divY > 0 else (int(divY) - 1)*2
         else:   
@@ -518,15 +524,23 @@ class Map2D:
 
         return resultX,resultY
 
+    #Obtain the current robot´s orientation with the odometry
     def calculateOrientation(self,th):
         angle=0
 
+        #right
         if -np.pi/4 < th <= np.pi/4:
             angle = 0
+        
+        #up
         elif np.pi/4 < angulo <= 3*np.pi/4:
             angle = np.pi/2
+        
+        #down
         elif -3*np.pi/4 <= angulo <= -np.pi/4:
             angle = -np.pi/2
+        
+        #left
         else:
             angle = np.pi
 
@@ -546,28 +560,31 @@ class Map2D:
         horizontal = x_goal - currentX
         angle=0
 
+        #The robot has to go up or down
         if horizontal == 0:
             angle = np.pi/2 - currentTh if vertical > 0 else -np.pi/2 - currentTh
+        #The robot has to go to the right or to the left
         else:
             if horizontal > 0:
                 angle = 0 - currentTh 
             else:
                 angle =  -np.pi - currentTh if currentTh < 0 else np.pi - currentTh
                 
-        
+        #Orient the robot facing the grid to which it has to move
         robot.setSpeed(0,angle)
         while angle-0.05 < th < angle+0.05: 
             _,_,th=robot.readOdometry(x,y,th)
             time.sleep(0.005)
         
+        #Stop moving
         robot.setSpeed(0,0)
         time.sleep(0.001)
 
+        #Detect if there is an obstacle 
         self.detectObstacle()
 
-
+        #Move to the grid´s goal
         robot.setSpeed(150,0)
-
         while currentX != x_goal and currentY != y_goal:
             x,y,th=robot.readOdometry(x,y,th)
             currentX,currentY=self.calculatePosition(x,y)
