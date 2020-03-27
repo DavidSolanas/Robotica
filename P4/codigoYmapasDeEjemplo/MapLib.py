@@ -536,11 +536,11 @@ class Map2D:
             angle = 0
         
         #up
-        elif np.pi/4 < angulo <= 3*np.pi/4:
+        elif np.pi/4 < angle <= 3*np.pi/4:
             angle = np.pi/2
         
         #down
-        elif -3*np.pi/4 <= angulo <= -np.pi/4:
+        elif -3*np.pi/4 <= angle <= -np.pi/4:
             angle = -np.pi/2
         
         #left
