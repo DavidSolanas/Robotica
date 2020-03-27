@@ -424,8 +424,10 @@ class Map2D:
     def fillCostMatrix(self, point_ini, point_end):
         #NOTE: Make sure self.costMatrix is a 2D numpy array of dimensions dimX x dimY
 
+        #Fill costMatrix with zeros
         self.costMatrix = np.zeros((2*self.sizeX+1,2*self.sizeY+1))
 
+        #Assign -1 in wall´s positions and -2 in non visited ones
         for i in range(2*self.sizeX+1):
             for j in range(2*self.sizeY+1):
                 if self.connectionMatrix[i,j] == True:
@@ -433,8 +435,9 @@ class Map2D:
                 else:
                     self.costMatrix[i,j] = -1
 
-
+        #Save initial position
         self.point_ini = point_ini
+        #Save goal position
         self.point_end = point_end
 
         self.costMatrix[point_end[0],point_end[1]] = 0
