@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 # sudo apt-get install tcl-dev tk-dev python-tk python3-tk if TkAgg is not available
 
-# from Robot import Robot
+from Robot import Robot
 from MapLib import Map2D
 
 
@@ -29,13 +29,13 @@ def main(args):
             print('Map file %s does not exist' % args.mapfile)
             exit(1)
 
-        map_file = args.mapfile;
+        map_file = args.mapfile
         # Instantiate Odometry with your own files from P2/P3
-        #robot = Robot()
+        robot = Robot()
         # ...
 
         # 1. load map and compute costs and path
-        myMap = Map2D(map_file)
+        # myMap = Map2D(map_file)
         #myMap.verbose = True
         #myMap.drawMap(saveSnapshot=False)
 
@@ -62,15 +62,22 @@ def main(args):
 
         point_ini=np.array([5,1])
         point_end=np.array([1,1])
-        myMap.findPath(point_ini,point_end)
-        print(myMap.costMatrix.transpose())
-        myMap.drawMap(saveSnapshot=False)
+        time.sleep(10)
+        print('a')
+        while True:
+            dist = robot.get_distance_sonar()
+            print(dist)
+            time.sleep(.02)
+
+        #myMap.findPath(point_ini,point_end)
+        #print(myMap.costMatrix.transpose())
+        #myMap.drawMap(saveSnapshot=False)
         
 
 
         #matplotlib.pyplot.close('all')
         # 2. launch updateOdometry thread()
-        # robot.startOdometry()
+        robot.startOdometry()
         # ...
 
 
@@ -89,7 +96,7 @@ def main(args):
         # 4. wrap up and close stuff ...
         # This currently unconfigure the sensors, disable the motors,
         # and restore the LED to the control of the BrickPi3 firmware.
-        # robot.stopOdometry()
+        robot.stopOdometry()
 
     except KeyboardInterrupt:
     # except the program gets interrupted by Ctrl+C on the keyboard.

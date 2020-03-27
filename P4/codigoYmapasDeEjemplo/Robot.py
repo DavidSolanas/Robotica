@@ -74,6 +74,12 @@ class Robot:
         # It'll contain the photo
         self.rawCapture = PiRGBArray(self.cam, size=(320, 240))
 
+        # Configure for an NXT ultrasonic sensor.
+        # BP.set_sensor_type configures the BrickPi3 for a specific sensor.
+        # BP.PORT_1 specifies that the sensor will be on sensor port 1.
+        # BP.SENSOR_TYPE.NXT_ULTRASONIC specifies that the sensor will be an NXT ultrasonic sensor.
+        self.BP.set_sensor_type(self.BP.PORT_D, self.BP.SENSOR_TYPE.NXT_ULTRASONIC)
+
         # odometry update period --> UPDATE value!
         self.P = .005 # 5 ms
         
@@ -371,3 +377,10 @@ class Robot:
         self.BP.set_motor_dps(self.BP.PORT_A, 120)
         time.sleep(1)
         self.BP.set_motor_dps(self.BP.PORT_A, 0)
+
+
+    def get_distance_sonar(self):
+        """ Returns the distance from the robot to an obstacle
+            located in the front of him in cm """
+        value = self.BP.get_sensor(self.BP.PORT_D)
+        return value

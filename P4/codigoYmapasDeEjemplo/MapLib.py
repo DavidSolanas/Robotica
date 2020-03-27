@@ -550,6 +550,10 @@ class Map2D:
         return angle
 
 
+    def detectObstacle(self):
+        return True
+
+
     def go(self,x_goal, y_goal, robot):
         x,y,th=robot.readOdometry()
 
