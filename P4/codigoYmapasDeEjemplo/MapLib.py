@@ -47,6 +47,9 @@ class Map2D:
         self.costMatrix =  None
         self.currentPath =  None
 
+        self.point_ini = None
+        self.point_end = None
+
         if self._loadMap(map_description_file):
             print("Map %s loaded ok" % map_description_file)
         else:
@@ -277,12 +280,12 @@ class Map2D:
         # "center" of each cell
         for i in range(0, self.sizeX):
             for j in range(0, self.sizeY):
-                    cx= i*self.sizeCell + self.sizeCell/2.
-                    cy= j*self.sizeCell + self.sizeCell/2.
-                    X = np.array([cx])
-                    Y = np.array([cy])
-                    cost = self.costMatrix[i,j]
-                    self.current_ax.text(X, Y, str(cost))
+                cx= i*self.sizeCell + self.sizeCell/2.
+                cy= j*self.sizeCell + self.sizeCell/2.
+                X = np.array([cx])
+                Y = np.array([cy])
+                cost = self.costMatrix[i*2+1,j*2+1]
+                self.current_ax.text(X, Y, str(cost))
 
 
         plt.axis('equal')
@@ -391,15 +394,57 @@ class Map2D:
     # METHODS to IMPLEMENT in P4
     # ############################################################
 
-    # def fillCostMatrix(self, ??):
-    # """
-    # NOTE: Make sure self.costMatrix is a 2D numpy array of dimensions dimX x dimY
-    # TO-DO
-    # """
-    # self.costMatrix = ....
+    def fillCostMatrixR(self,x_end, y_end, cost):
+        #Comprueba si es una celda válida y si el cost que ya hay es mayor.
+        if self.costMatrix[x_end+1,y_end] != -1 and x_end+2 <= 2*self.sizeX:
+            if self.costMatrix[x_end+2,y_end] < -1 or self.costMatrix[x_end+2,y_end] > cost:
+                #Asigna el cost y realiza la llamada recursiva.
+                self.costMatrix[x_end+2,y_end] = cost
+                self.fillCostMatrixR(x_end+2,y_end, cost+1)
+
+        #Comprueba si es una celda válida y si el cost que ya hay es mayor.
+        if self.costMatrix[x_end-1,y_end] != -1 and x_end-2 >= 0:
+            if self.costMatrix[x_end-2,y_end] < -1 or self.costMatrix[x_end-2,y_end] > cost:
+                #Asigna el cost y realiza la llamada recursiva.
+                self.costMatrix[x_end-2,y_end] = cost
+                self.fillCostMatrixR(x_end-2,y_end, cost+1)
+
+        #Comprueba si es una celda válida y si el cost que ya hay es mayor.
+        if self.costMatrix[x_end,y_end+1] != -1 and y_end+2 <= 2*self.sizeY:
+            if self.costMatrix[x_end,y_end+2] < -1 or self.costMatrix[x_end,y_end+2] > cost:
+                #Asigna el cost y realiza la llamada recursiva.
+                self.costMatrix[x_end,y_end+2] = cost
+                self.fillCostMatrixR(x_end,y_end+2, cost+1)
+
+        #Comprueba si es una celda válida y si el cost que ya hay es mayor.
+        if self.costMatrix[x_end,y_end-1] != -1 and y_end-2 >= 0:
+            if self.costMatrix[x_end,y_end-2] < -1 or self.costMatrix[x_end,y_end-2] > cost:
+                #Asigna el cost y realiza la llamada recursiva.
+                self.costMatrix[x_end,y_end-2] = cost
+                self.fillCostMatrixR(x_end,y_end-2, cost+1)
 
 
-    def findPath(self, x_ini,  y_ini, x_end, y_end):
+    def fillCostMatrix(self, point_ini, point_end):
+        #NOTE: Make sure self.costMatrix is a 2D numpy array of dimensions dimX x dimY
+
+        self.costMatrix = np.zeros((2*self.sizeX+1,2*self.sizeY+1))
+
+        for i in range(2*self.sizeX+1):
+            for j in range(2*self.sizeY+1):
+                if self.connectionMatrix[i,j] == True:
+                    self.costMatrix[i,j] = -2
+                else:
+                    self.costMatrix[i,j] = -1
+
+
+        self.point_ini = point_ini
+        self.point_end = point_end
+
+        self.costMatrix[point_end[0],point_end[1]] = 0
+        self.fillCostMatrixR(point_end[0], point_end[1],1)
+
+
+    def planPath(self, x_ini,  y_ini, x_end, y_end):
         """
         x_ini, y_ini, x_end, y_end: integer values that indicate \
             the x and y coordinates of the starting (ini) and ending (end) cell
@@ -407,8 +452,44 @@ class Map2D:
         NOTE: Make sure self.currentPath is a 2D numpy array
         ...  TO-DO  ....
         """
-        # FAKE sample path: [ [0,0], [0,0], [0,0], ...., [0,0]  ]
+        point_ini=[x_ini,y_ini]
+        point_end=[x_end,y_end]
+        self.fillCostMatrix(point_ini,point_end)
+
+        num_steps = int(self.costMatrix[x_ini,y_ini])
         self.currentPath = np.array( [ [0,0] ] * num_steps )
+
+        index = 0
+        x=x_ini
+        y=y_ini
+        minX=x_ini
+        minY=y_ini		
+
+
+        while self.costMatrix[minX,minY] != 0:
+            if self.costMatrix[x-1,y] != -1 and self.costMatrix[x-2,y] < self.costMatrix[minX,minY]:
+                minX = x-2		
+
+            elif self.costMatrix[x+1,y] != -1 and self.costMatrix[x+2,y] < self.costMatrix[minX,minY]:
+                minX = x+2	
+            
+            elif self.costMatrix[x,y-1] != -1 and self.costMatrix[x,y-2] < self.costMatrix[minX,minY]:
+                minY = y-2		
+            
+            elif self.costMatrix[x,y+1] != -1 and self.costMatrix[x,y+2] < self.costMatrix[minX,minY]:
+                minY = y+2	
+            
+            self.costMatrix[x,y] = 100-index		
+            
+            x = minX
+            y = minY
+            
+            self.currentPath[index] = [x,y]
+
+            index+=1			
+        
+
+
         pathFound = True
 
         # ????
