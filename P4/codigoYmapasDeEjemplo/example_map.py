@@ -31,23 +31,23 @@ def main(args):
 
         map_file = args.mapfile
         # Instantiate Odometry with your own files from P2/P3
-        robot = Robot()
+        robot = Robot(init_position=[0.0, 0.0, np.pi/2])
         # ...
 
         # 1. load map and compute costs and path
-        # myMap = Map2D(map_file)
+        myMap = Map2D(map_file)
         #myMap.verbose = True
         #myMap.drawMap(saveSnapshot=False)
 
         # you can set verbose to False to stop displaying plots interactively
         # (and maybe just save the snapshots of the map)
-        # myMap.verbose = False
+        #myMap.verbose = False
 
         # sample commands to see how to draw the map
-        #sampleRobotLocations = [ [0,0,0], [600, 600, 3.14] ]
+        sampleRobotLocations = [ [0,0,0] ]
         # this will save a .png with the current map visualization,
         # all robot positions, last one in green
-        #myMap.verbose = True
+        myMap.verbose = True
         #myMap.drawMapWithRobotLocations( sampleRobotLocations, saveSnapshot=False )
 
         # this shows the current, and empty, map and an additionally closed connection
@@ -60,18 +60,20 @@ def main(args):
         #sampleRobotLocations = [ [200, 200, 3.14/2.0], [200, 600, 3.14/4.0], [200, 1000, -3.14/2.0],  ]
         #myMap.drawMapWithRobotLocations( sampleRobotLocations, saveSnapshot=False )
 
-        point_ini=np.array([5,1])
-        point_end=np.array([1,1])
+        point_ini=np.array([1,1])
+        point_end=np.array([5,1])
+        """
         time.sleep(10)
         print('a')
         while True:
             dist = robot.get_distance_sonar()
             print(dist)
+            print(robot.detectObstacle())
             time.sleep(.02)
-
-        #myMap.findPath(point_ini,point_end)
-        #print(myMap.costMatrix.transpose())
-        #myMap.drawMap(saveSnapshot=False)
+        """
+        myMap.findPath(point_ini,point_end)
+        print(myMap.costMatrix.transpose())
+        myMap.drawMap(saveSnapshot=False)
         
 
 
@@ -80,6 +82,7 @@ def main(args):
         robot.startOdometry()
         # ...
 
+        myMap.move(robot)
 
         # 3. perform trajectory
         # robot.setSpeed(1,1) ...

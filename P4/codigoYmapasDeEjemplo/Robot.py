@@ -60,9 +60,9 @@ class Robot:
 
         ##################################################
         # odometry shared memory values
-        self.x = Value('d',0.0)
-        self.y = Value('d',0.0)
-        self.th = Value('d',0.0)
+        self.x = Value('d',init_position[0])
+        self.y = Value('d', init_position[1])
+        self.th = Value('d', init_position[2])
         self.finished = Value('b',1) # boolean to show if odometry updates are finished
 
         # if we want to block several instructions to be run together, we may want to use an explicit Lock
@@ -83,7 +83,7 @@ class Robot:
         self.P = .005 # 5 ms
         
         # allow the camera to warmup
-        time.sleep(10)
+        time.sleep(.10)
 
 
 

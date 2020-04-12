@@ -49,6 +49,7 @@ class Map2D:
 
         self.point_ini = None
         self.point_end = None
+        self.ref_point_ini = None
 
         if self._loadMap(map_description_file):
             print("Map %s loaded ok" % map_description_file)
@@ -284,7 +285,7 @@ class Map2D:
                 cy= j*self.sizeCell + self.sizeCell/2.
                 X = np.array([cx])
                 Y = np.array([cy])
-                cost = self.costMatrix[i*2+1,j*2+1]
+                cost = self.costMatrix[2*i+1,2*j+1]
                 self.current_ax.text(X, Y, str(cost))
 
 
@@ -437,6 +438,8 @@ class Map2D:
 
         #Save initial position
         self.point_ini = point_ini
+        if self.ref_point_ini is None:
+            self.ref_point_ini = point_ini
         #Save goal position
         self.point_end = point_end
 
@@ -494,14 +497,8 @@ class Map2D:
             self.currentPath[index] = [x,y]
 
             index+=1	
-
-        
-        self.move(robot)
-
+        print(self.currentPath)
         pathFound = True
-
-        # ????
-
         return pathFound
     
     #Obtain the current robot´s position with the odometry
@@ -536,11 +533,11 @@ class Map2D:
             angle = 0
         
         #up
-        elif np.pi/4 < angle <= 3*np.pi/4:
+        elif np.pi/4 < th <= 3*np.pi/4:
             angle = np.pi/2
         
         #down
-        elif -3*np.pi/4 <= angle <= -np.pi/4:
+        elif -3*np.pi/4 <= th <= -np.pi/4:
             angle = -np.pi/2
         
         #left
@@ -554,15 +551,18 @@ class Map2D:
         x,y,th=robot.readOdometry()
 
         currentX,currentY=self.calculatePosition(x,y)
-        currentX+=self.point_ini[0]
-        currentY+=self.point_ini[1]
-
+        print('ini: ', self.point_ini)
+        print(x_goal, y_goal)
+        print(currentX, currentY)
+        currentX+=self.ref_point_ini[0]
+        currentY+=self.ref_point_ini[1]
+        print(th)
         currentTh = self.calculateOrientation(th)
-
+        print(currentTh)
         vertical = y_goal - currentY
         horizontal = x_goal - currentX
         angle=0
-
+        print(horizontal, vertical, '\n')
         #The robot has to go up or down
         if horizontal == 0:
             angle = np.pi/2 - currentTh if vertical > 0 else -np.pi/2 - currentTh
@@ -574,28 +574,27 @@ class Map2D:
                 angle =  -np.pi - currentTh if currentTh < 0 else np.pi - currentTh
                 
         #Orient the robot facing the grid to which it has to move
-        robot.setSpeed(0,angle)
-        while angle-0.05 < th < angle+0.05: 
-            _,_,th=robot.readOdometry(x,y,th)
-            time.sleep(0.005)
+        if angle != 0:
+            robot.setSpeed(0,angle)
+            time.sleep(1)
         
         #Stop moving
         robot.setSpeed(0,0)
         time.sleep(0.001)
 
-        #Detect if there is an obstacle 
-        robot.detectObstacle()
-
         #Move to the grid´s goal
         robot.setSpeed(150,0)
-        while currentX != x_goal and currentY != y_goal and not robot.detectObstacle() :
-            x,y,th=robot.readOdometry(x,y,th)
+
+        while (currentX != x_goal or currentY != y_goal) and not robot.detectObstacle() :
+            x,y,th=robot.readOdometry()
             currentX,currentY=self.calculatePosition(x,y)
-            currentX+=self.point_ini[0]
-            currentY+=self.point_ini[1]
+            currentX+=self.ref_point_ini[0]
+            currentY+=self.ref_point_ini[1]
             time.sleep(0.005)
         
         if (currentX != x_goal or currentY != y_goal):
+            robot.setSpeed(0,0)
+            x, y = currentX, currentY
             if(currentTh==0):
                 currentX+=1
             elif(currentTh==np.pi/2):
@@ -606,7 +605,7 @@ class Map2D:
                 currentX-=1
             
             self.connectionMatrix[currentX,currentY] = False
-            self.replanPath()
+            self.replanPath(x,y,self.point_end[0],self.point_end[1])
 
         return robot.detectObstacle()
 
@@ -615,11 +614,16 @@ class Map2D:
         index=0
         stop=False
         obstacle=False
-
+        print(self.currentPath)
         while not stop:
-            obstacle = go(self.currentPath[index][0],self.currentPath[index][1], robot)
-            [x, y] = self.currentPath[index]
+            obstacle = self.go(self.currentPath[index][0],self.currentPath[index][1], robot)
+            x = self.currentPath[index][0]
+            y = self.currentPath[index][1]
+            print(x, y)
+            print(self.costMatrix[x,y])
+            print(obstacle)
             if obstacle:
+                print('REINICIANDO INDICE')
                 index = 0
             else:
                 if self.costMatrix[x,y] == 0:
@@ -630,6 +634,7 @@ class Map2D:
 
 
     def replanPath(self, x, y, x_goal, y_goal):
+        print('replaning...', x, y)
         self.planPath(x, y, x_goal, y_goal)
     
 
