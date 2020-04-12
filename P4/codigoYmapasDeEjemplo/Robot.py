@@ -83,7 +83,7 @@ class Robot:
         self.P = .005 # 5 ms
         
         # allow the camera to warmup
-        time.sleep(0.1)
+        time.sleep(10)
 
 
 

@@ -593,7 +593,6 @@ class Map2D:
             currentX,currentY=self.calculatePosition(x,y)
             currentX+=self.point_ini[0]
             currentY+=self.point_ini[1]
-            robot.detectObstacle()
             time.sleep(0.005)
         
         if (currentX != x_goal or currentY != y_goal):
@@ -605,8 +604,11 @@ class Map2D:
                 currentY+=1
             elif(currentTh==np.pi):
                 currentX-=1
-
+            
+            self.connectionMatrix[currentX,currentY] = False
             self.replanPath()
+
+        return robot.detectObstacle()
 
     
     def move(self,robot):
@@ -615,10 +617,19 @@ class Map2D:
         obstacle=False
 
         while not stop:
-            go(self.currentPath[index][0],self.currentPath[index][1], robot) 
+            obstacle = go(self.currentPath[index][0],self.currentPath[index][1], robot)
+            [x, y] = self.currentPath[index]
+            if obstacle:
+                index = 0
+            else:
+                if self.costMatrix[x,y] == 0:
+                    stop = True
+                else:
+                    index += 1
     
 
 
-    def replanPath(self, ??):
+    def replanPath(self, x, y, x_goal, y_goal):
+        self.planPath(x, y, x_goal, y_goal)
     
 
