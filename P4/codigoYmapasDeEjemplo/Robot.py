@@ -78,8 +78,7 @@ class Robot:
         # BP.set_sensor_type configures the BrickPi3 for a specific sensor.
         # BP.PORT_1 specifies that the sensor will be on sensor port 1.
         # BP.SENSOR_TYPE.NXT_ULTRASONIC specifies that the sensor will be an NXT ultrasonic sensor.
-        self.BP.set_sensor_type(self.BP.PORT_D, self.BP.SENSOR_TYPE.NXT_ULTRASONIC)
-
+        self.BP.set_sensor_type(self.BP.PORT_1, self.BP.SENSOR_TYPE.EV3_ULTRASONIC_CM) # Configure for an EV3 ultrasonic sensor.
         # odometry update period --> UPDATE value!
         self.P = .005 # 5 ms
         
@@ -382,5 +381,8 @@ class Robot:
     def get_distance_sonar(self):
         """ Returns the distance from the robot to an obstacle
             located in the front of him in cm """
-        value = self.BP.get_sensor(self.BP.PORT_D)
+        value = self.BP.get_sensor(self.BP.PORT_1)
         return value
+
+    def detectObstacle(self):
+        return self.get_distance_sonar()<30

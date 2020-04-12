@@ -550,10 +550,6 @@ class Map2D:
         return angle
 
 
-    def detectObstacle(self):
-        return True
-
-
     def go(self,x_goal, y_goal, robot):
         x,y,th=robot.readOdometry()
 
@@ -588,16 +584,29 @@ class Map2D:
         time.sleep(0.001)
 
         #Detect if there is an obstacle 
-        self.detectObstacle()
+        robot.detectObstacle()
 
         #Move to the grid´s goal
         robot.setSpeed(150,0)
-        while currentX != x_goal and currentY != y_goal:
+        while currentX != x_goal and currentY != y_goal and not robot.detectObstacle() :
             x,y,th=robot.readOdometry(x,y,th)
             currentX,currentY=self.calculatePosition(x,y)
             currentX+=self.point_ini[0]
             currentY+=self.point_ini[1]
+            robot.detectObstacle()
             time.sleep(0.005)
+        
+        if (currentX != x_goal or currentY != y_goal):
+            if(currentTh==0):
+                currentX+=1
+            elif(currentTh==np.pi/2):
+                currentY-=1
+            elif(currentTh==-np.pi/2):
+                currentY+=1
+            elif(currentTh==np.pi):
+                currentX-=1
+
+            self.replanPath()
 
     
     def move(self,robot):
@@ -610,6 +619,6 @@ class Map2D:
     
 
 
-    # def replanPath(self, ??):
-    # """ TO-DO """
+    def replanPath(self, ??):
+    
 
