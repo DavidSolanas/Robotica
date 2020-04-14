@@ -602,10 +602,10 @@ class Map2D:
                 currentX+=1
             #up
             elif(currentTh==np.pi/2):
-                currentY-=1
+                currentY+=1
             #down
             elif(currentTh==-np.pi/2):
-                currentY+=1
+                currentY-=1
             #left
             elif(currentTh==np.pi):
                 currentX-=1
