@@ -395,7 +395,7 @@ class Map2D:
     # METHODS to IMPLEMENT in P4
     # ############################################################
 
-    #Calculate the weight of the grids
+    #Calculate the weight of the grids (NF1)
     def fillCostMatrixR(self,x_end, y_end, cost):
         #right
         if self.costMatrix[x_end+1,y_end] != -1 and x_end+2 <= 2*self.sizeX:
@@ -425,10 +425,10 @@ class Map2D:
     def fillCostMatrix(self, point_ini, point_end):
         #NOTE: Make sure self.costMatrix is a 2D numpy array of dimensions dimX x dimY
 
-        #Fill costMatrix with zeros
+        #fill costMatrix with zeros
         self.costMatrix = np.zeros((2*self.sizeX+1,2*self.sizeY+1))
 
-        #Assign -1 in wall´s positions and -2 in non visited ones
+        #assign -1 in wall´s positions and -2 in non visited ones
         for i in range(2*self.sizeX+1):
             for j in range(2*self.sizeY+1):
                 if self.connectionMatrix[i,j] == True:
@@ -436,11 +436,11 @@ class Map2D:
                 else:
                     self.costMatrix[i,j] = -1
 
-        #Save initial position
+        #save initial position
         self.point_ini = point_ini
         if self.ref_point_ini is None:
             self.ref_point_ini = point_ini
-        #Save goal position
+        #save goal position
         self.point_end = point_end
 
         self.costMatrix[point_end[0],point_end[1]] = 0
@@ -469,7 +469,7 @@ class Map2D:
         minX=x_ini
         minY=y_ini		
 
-        #Finding the best path from the start to the goal
+        #finding the best path from the start to the goal (NF1)
         while self.costMatrix[minX,minY] != 0:
             #left
             if self.costMatrix[x-1,y] != -1 and self.costMatrix[x-2,y] < self.costMatrix[minX,minY]:
@@ -509,13 +509,13 @@ class Map2D:
         divY = y / self.sizeCell
         restoY = divY - int(divY)
 
-        #If we are almost in the next grid, let´s go to it
+        #if we are almost in the next grid, let´s go to it
         if abs(restoX) > .90:
             resultX = (int(divX) + 1)*2 if divX > 0 else (int(divX) - 1)*2
         else:   
             resultX = int(divX)*2
         
-        #If we are almost in the next grid, let´s go to it
+        #if we are almost in the next grid, let´s go to it
         if abs(restoY) > .90:
             resultY = (int(divY) + 1)*2 if divY > 0 else (int(divY) - 1)*2
         else:   
@@ -546,40 +546,46 @@ class Map2D:
 
         return angle
 
-
+    #Advance from the current cell to the next target cell if there is no obstacle between them
     def go(self,x_goal, y_goal, robot):
         x,y,th=robot.readOdometry()
 
+        #calculate the cell you are 
         currentX,currentY=self.calculatePosition(x,y)
-
+        #for taking into account from which cell you have started
         currentX+=self.ref_point_ini[0]
         currentY+=self.ref_point_ini[1]
+
+        #calculate the robot´s orientation (it can be only in 4 positions)
         currentTh = self.calculateOrientation(th)
+
+
         vertical = y_goal - currentY
         horizontal = x_goal - currentX
         angle=0
-        #The robot has to go up or down
+        #the robot has to go up or down
         if horizontal == 0:
             angle = np.pi/2 - currentTh if vertical > 0 else -np.pi/2 - currentTh
-        #The robot has to go to the right or to the left
+        #the robot has to go to the right or to the left
         else:
             if horizontal > 0:
                 angle = 0 - currentTh 
             else:
                 angle =  -np.pi - currentTh if currentTh < 0 else np.pi - currentTh
                 
-        #Orient the robot facing the grid to which it has to move
+        #orient the robot facing the grid to which it has to move
         if angle != 0:
             robot.setSpeed(0,angle)
             time.sleep(1)
         
-        #Stop moving
+        #stop moving
         robot.setSpeed(0,0)
         time.sleep(0.001)
 
-        #Move to the grid´s goal
+        #move to the grid´s goal
         robot.setSpeed(150,0)
 
+        #advance to the target box if no obstacle is detected
         while (currentX != x_goal or currentY != y_goal) and not robot.detectObstacle() :
             x,y,th=robot.readOdometry()
             currentX,currentY=self.calculatePosition(x,y)
@@ -587,42 +593,54 @@ class Map2D:
             currentY+=self.ref_point_ini[1]
             time.sleep(0.005)
         
+        #if an obstacle was detected, we calculate where it is based on the orientation of the robot
         if (currentX != x_goal or currentY != y_goal):
             robot.setSpeed(0,0)
             x, y = currentX, currentY
+            #right
             if(currentTh==0):
                 currentX+=1
+            #up
             elif(currentTh==np.pi/2):
                 currentY-=1
+            #down
             elif(currentTh==-np.pi/2):
                 currentY+=1
+            #left
             elif(currentTh==np.pi):
                 currentX-=1
             
+            #mark the obstacle cell
             self.connectionMatrix[currentX,currentY] = False
+            #planning the new route
             self.replanPath(x,y,self.point_end[0],self.point_end[1])
 
         return robot.detectObstacle()
 
-    
+    #Allows the robot to go from the initial position to the target
     def move(self,robot):
         index=0
         stop=False
         obstacle=False
+        #while the robot is not in the target
         while not stop:
+            #the robot advances cell by cell 
             obstacle = self.go(self.currentPath[index][0],self.currentPath[index][1], robot)
             x = self.currentPath[index][0]
             y = self.currentPath[index][1]
+            #if there is an obstacle, it is necessary to start reading the current path again
             if obstacle:
                 index = 0
             else:
+                #if current cell has a 0, the robot is in target
                 if self.costMatrix[x,y] == 0:
                     stop = True
+                #the robot needs to go to the next cell of the current path
                 else:
                     index += 1
     
 
-
+    #start on a new path if there is an unexpected obstacle
     def replanPath(self, x, y, x_goal, y_goal):
         print('replaning...', x, y)
         self.planPath(x, y, x_goal, y_goal)
