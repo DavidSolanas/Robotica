@@ -62,15 +62,7 @@ def main(args):
 
         point_ini=np.array([1,1])
         point_end=np.array([5,1])
-        """
-        time.sleep(10)
-        print('a')
-        while True:
-            dist = robot.get_distance_sonar()
-            print(dist)
-            print(robot.detectObstacle())
-            time.sleep(.02)
-        """
+        
         myMap.findPath(point_ini,point_end)
         print(myMap.costMatrix.transpose())
         myMap.drawMap(saveSnapshot=False)

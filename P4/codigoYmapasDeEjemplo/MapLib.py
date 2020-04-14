@@ -551,18 +551,13 @@ class Map2D:
         x,y,th=robot.readOdometry()
 
         currentX,currentY=self.calculatePosition(x,y)
-        print('ini: ', self.point_ini)
-        print(x_goal, y_goal)
-        print(currentX, currentY)
+
         currentX+=self.ref_point_ini[0]
         currentY+=self.ref_point_ini[1]
-        print(th)
         currentTh = self.calculateOrientation(th)
-        print(currentTh)
         vertical = y_goal - currentY
         horizontal = x_goal - currentX
         angle=0
-        print(horizontal, vertical, '\n')
         #The robot has to go up or down
         if horizontal == 0:
             angle = np.pi/2 - currentTh if vertical > 0 else -np.pi/2 - currentTh
@@ -614,16 +609,11 @@ class Map2D:
         index=0
         stop=False
         obstacle=False
-        print(self.currentPath)
         while not stop:
             obstacle = self.go(self.currentPath[index][0],self.currentPath[index][1], robot)
             x = self.currentPath[index][0]
             y = self.currentPath[index][1]
-            print(x, y)
-            print(self.costMatrix[x,y])
-            print(obstacle)
             if obstacle:
-                print('REINICIANDO INDICE')
                 index = 0
             else:
                 if self.costMatrix[x,y] == 0:
