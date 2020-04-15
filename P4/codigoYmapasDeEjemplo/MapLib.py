@@ -502,25 +502,39 @@ class Map2D:
         return pathFound
     
     #Obtain the current robot´s position with the odometry
-    def calculatePosition(self,x,y):
+    def calculatePosition(self,x,y,th):
         divX = x / self.sizeCell	
         restoX = divX - int(divX)	
 
         divY = y / self.sizeCell
         restoY = divY - int(divY)
-
         #if we are almost in the next grid, let´s go to it
-        if abs(restoX) > .90:
-            resultX = (int(divX) + 1)*2 if divX > 0 else (int(divX) - 1)*2
-        else:   
-            resultX = int(divX)*2
+        if th == 0:
+            if abs(restoX) > .975:
+                resultX = (int(divX) + 1)*2 if divX > 0 else (int(divX) - 1)*2
+            else:   
+                resultX = int(divX)*2
+        elif th == np.pi:
+            if abs(restoX) < .025:
+                resultX = int(divX)*2
+            else:   
+                resultX = (int(divX) + 1)*2 if divX > 0 else (int(divX) + 1)*2
+        else:
+            resultX = int(round(divX)) * 2
         
         #if we are almost in the next grid, let´s go to it
-        if abs(restoY) > .90:
-            resultY = (int(divY) + 1)*2 if divY > 0 else (int(divY) - 1)*2
-        else:   
-            resultY = int(divY)*2
-
+        if th == np.pi/2:
+            if abs(restoY) > .975:
+                resultY = (int(divY) + 1)*2 if divY > 0 else (int(divY) - 1)*2
+            else:   
+                resultY = int(divY)*2
+        elif th == -np.pi/2:
+            if abs(restoY) < .025:
+                resultY = int(divY)*2
+            else:   
+                resultY = (int(divY) + 1)*2 if divY > 0 else (int(divY) + 1)*2
+        else:
+            resultY = int(round(divY)) * 2
 
         return resultX,resultY
 
@@ -551,14 +565,13 @@ class Map2D:
         x,y,th=robot.readOdometry()
 
         #calculate the cell you are 
-        currentX,currentY=self.calculatePosition(x,y)
+        currentTh = self.calculateOrientation(th)
+        currentX,currentY=self.calculatePosition(x,y, currentTh)
         #for taking into account from which cell you have started
         currentX+=self.ref_point_ini[0]
         currentY+=self.ref_point_ini[1]
 
         #calculate the robot´s orientation (it can be only in 4 positions)
-        currentTh = self.calculateOrientation(th)
-
 
         vertical = y_goal - currentY
         horizontal = x_goal - currentX
@@ -587,8 +600,9 @@ class Map2D:
 
         #advance to the target box if no obstacle is detected
         while (currentX != x_goal or currentY != y_goal) and not robot.detectObstacle() :
-            x,y,th=robot.readOdometry()
-            currentX,currentY=self.calculatePosition(x,y)
+            x,y, th = robot.readOdometry()
+            currentTh = self.calculateOrientation(th)
+            currentX,currentY=self.calculatePosition(x,y,currentTh)
             currentX+=self.ref_point_ini[0]
             currentY+=self.ref_point_ini[1]
             time.sleep(0.005)
