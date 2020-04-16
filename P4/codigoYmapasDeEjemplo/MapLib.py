@@ -456,7 +456,7 @@ class Map2D:
         point_ini=[x_ini,y_ini]
         point_end=[x_end,y_end]
         self.fillCostMatrix(point_ini,point_end)
-
+        print(self.costMatrix)
         #Minimum moves for getting the goal 
         num_steps = int(self.costMatrix[x_ini,y_ini])
         self.currentPath = np.array( [ [0,0] ] * num_steps )
@@ -559,7 +559,7 @@ class Map2D:
         #for taking into account from which cell you have started
         currentX+=self.ref_point_ini[0]
         currentY+=self.ref_point_ini[1]
-
+        
         #calculate the robot´s orientation (it can be only in 4 positions)
         vertical = y_goal - currentY
         horizontal = x_goal - currentX
@@ -584,7 +584,8 @@ class Map2D:
         time.sleep(0.001)
 
         #move to the grid´s goal
-        robot.setSpeed(150,0)
+        if not robot.detectObstacle():
+            robot.setSpeed(150,0)
 
         #advance to the target box if no obstacle is detected
         while (currentX != x_goal or currentY != y_goal) and not robot.detectObstacle() :
@@ -628,13 +629,13 @@ class Map2D:
         while not stop:
             #the robot advances cell by cell 
             obstacle = self.go(self.currentPath[index][0],self.currentPath[index][1], robot)
-            x = self.currentPath[index][0]
-            y = self.currentPath[index][1]
             #if there is an obstacle, it is necessary to start reading the current path again
             if obstacle:
                 index = 0
             else:
                 #if current cell has a 0, the robot is in target
+                x = self.currentPath[index][0]
+                y = self.currentPath[index][1]
                 if self.costMatrix[x,y] == 0:
                     stop = True
                 #the robot needs to go to the next cell of the current path

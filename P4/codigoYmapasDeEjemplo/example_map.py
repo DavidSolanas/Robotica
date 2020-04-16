@@ -60,8 +60,8 @@ def main(args):
         #sampleRobotLocations = [ [200, 200, 3.14/2.0], [200, 600, 3.14/4.0], [200, 1000, -3.14/2.0],  ]
         #myMap.drawMapWithRobotLocations( sampleRobotLocations, saveSnapshot=False )
 
-        point_ini=np.array([5,1])
-        point_end=np.array([13,1])
+        point_ini=np.array([1,1])
+        point_end=np.array([5,5])
         
         myMap.findPath(point_ini,point_end)
         print(myMap.costMatrix.transpose())
