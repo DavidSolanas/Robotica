@@ -31,7 +31,7 @@ def main(args):
 
         map_file = args.mapfile
         # Instantiate Odometry with your own files from P2/P3
-        robot = Robot(init_position=[0.0, 0.0, np.pi/2])
+        robot = Robot(init_position=[0.0, 0.0, 0])
         # ...
 
         # 1. load map and compute costs and path
@@ -60,8 +60,8 @@ def main(args):
         #sampleRobotLocations = [ [200, 200, 3.14/2.0], [200, 600, 3.14/4.0], [200, 1000, -3.14/2.0],  ]
         #myMap.drawMapWithRobotLocations( sampleRobotLocations, saveSnapshot=False )
 
-        point_ini=np.array([1,1])
-        point_end=np.array([5,1])
+        point_ini=np.array([5,1])
+        point_end=np.array([13,1])
         
         myMap.findPath(point_ini,point_end)
         print(myMap.costMatrix.transpose())
@@ -83,7 +83,7 @@ def main(args):
     except KeyboardInterrupt:
     # except the program gets interrupted by Ctrl+C on the keyboard.
     # THIS IS IMPORTANT if we want that motors STOP when we Ctrl+C ...
-    #    robot.stopOdometry()
+        robot.stopOdometry()
         print('do something to stop Robot when we Ctrl+C ...')
 
 

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 import numpy as np
 import time
+import math
 import os
 
 class Map2D:
@@ -498,42 +499,30 @@ class Map2D:
         pathFound = True
         return pathFound
     
-    def calculatePosition(self,x,y,th):
+    def calculatePosition(self,x,y, th, x_goal, y_goal):
         """ Obtain the current robot´s position with the odometry """
-        divX = x / self.sizeCell	
-        restoX = divX - int(divX)	
-
-        divY = y / self.sizeCell
-        restoY = divY - int(divY)
-        #if we are almost in the next grid, let´s go to it
-        if th == 0:
-            if abs(restoX) > .975:
-                resultX = (int(divX) + 1)*2 if divX > 0 else (int(divX) - 1)*2
-            else:   
-                resultX = int(divX)*2
-        elif th == np.pi:
-            if abs(restoX) < .025:
-                resultX = int(divX)*2
-            else:   
-                resultX = (int(divX) + 1)*2 if divX > 0 else (int(divX) + 1)*2
+        res_x = x_goal - x
+        res_y = y_goal - y
+        d_x = x / self.sizeCell
+        d_y = y / self.sizeCell
+        if th == 0 or th == np.pi:
+            if abs(res_x) < 1:
+                _x = int(math.ceil(d_x)) * 2
+            else:
+                _x = int(math.floor(d_x)) * 2 if res_x > 0 else int(math.ceil(d_x))
         else:
-            resultX = int(round(divX)) * 2
-        
-        #if we are almost in the next grid, let´s go to it
-        if th == np.pi/2:
-            if abs(restoY) > .975:
-                resultY = (int(divY) + 1)*2 if divY > 0 else (int(divY) - 1)*2
-            else:   
-                resultY = int(divY)*2
-        elif th == -np.pi/2:
-            if abs(restoY) < .025:
-                resultY = int(divY)*2
-            else:   
-                resultY = (int(divY) + 1)*2 if divY > 0 else (int(divY) + 1)*2
-        else:
-            resultY = int(round(divY)) * 2
+            _x = int(round(d_x)) * 2
 
-        return resultX,resultY
+        if th == np.pi/2 or th == -np.pi/2:
+            if abs(res_y) < 1:
+                _y = int(math.ceil(d_y)) * 2
+            else:
+                _y = int(math.floor(d_y)) * 2 if res_y > 0 else int(math.ceil(d_y)) * 2
+        else:
+            _y = int(round(d_y)) * 2
+
+        return _x, _y
+
 
     def calculateOrientation(self,th):
         """ Obtain the current robot´s orientation with the odometry """
@@ -564,13 +553,14 @@ class Map2D:
 
         #calculate the cell you are 
         currentTh = self.calculateOrientation(th)
-        currentX,currentY=self.calculatePosition(x,y, currentTh)
+        x_next = (x_goal - self.ref_point_ini[0]) / 2 * self.sizeCell
+        y_next = (y_goal - self.ref_point_ini[1]) / 2 * self.sizeCell
+        currentX,currentY=self.calculatePosition(round(x/100)*100,round(y/100)*100, currentTh, x_next, y_next)
         #for taking into account from which cell you have started
         currentX+=self.ref_point_ini[0]
         currentY+=self.ref_point_ini[1]
 
         #calculate the robot´s orientation (it can be only in 4 positions)
-
         vertical = y_goal - currentY
         horizontal = x_goal - currentX
         angle=0
@@ -600,7 +590,7 @@ class Map2D:
         while (currentX != x_goal or currentY != y_goal) and not robot.detectObstacle() :
             x,y, th = robot.readOdometry()
             currentTh = self.calculateOrientation(th)
-            currentX,currentY=self.calculatePosition(x,y,currentTh)
+            currentX,currentY=self.calculatePosition(x,y, currentTh, x_next, y_next)
             currentX+=self.ref_point_ini[0]
             currentY+=self.ref_point_ini[1]
             time.sleep(0.005)

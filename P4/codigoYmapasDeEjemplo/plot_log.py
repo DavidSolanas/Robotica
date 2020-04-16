@@ -12,7 +12,8 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-
+import argparse
+import os
 
 
 # Dibuja robot en location_eje con color (c) y tamano (p/g)
@@ -66,7 +67,20 @@ def read_log(filename):
 
 
 # Obtiene todas las coordenadas
-coord = np.array(read_log('odometry.log'))
+# get and parse arguments passed to main
+    # Add as many args as you need ...
+parser = argparse.ArgumentParser()
+parser.add_argument("-f", "--odometryfile", help="Log that saves the odometry",
+                      default="odometry_Map1.log")
+args = parser.parse_args()
+
+if not os.path.isfile(args.odometryfile):
+  print('Map file %s does not exist' % args.odometryfile)
+  exit(1)
+
+odometry = args.odometryfile
+
+coord = np.array(read_log(odometry))
 
 # Dibuja la trayectoria del robot según el log guardado
 for c in coord:
