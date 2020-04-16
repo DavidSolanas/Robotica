@@ -395,8 +395,8 @@ class Map2D:
     # METHODS to IMPLEMENT in P4
     # ############################################################
 
-    #Calculate the weight of the grids (NF1)
     def fillCostMatrixR(self,x_end, y_end, cost):
+        """ Calculate the weight of the grids (NF1) """
         #right
         if self.costMatrix[x_end+1,y_end] != -1 and x_end+2 <= 2*self.sizeX:
             if self.costMatrix[x_end+2,y_end] < -1 or self.costMatrix[x_end+2,y_end] > cost:
@@ -421,9 +421,8 @@ class Map2D:
                 self.costMatrix[x_end,y_end-2] = cost
                 self.fillCostMatrixR(x_end,y_end-2, cost+1)
 
-    #Part 1 and 2 of NF1 algorithm (initialize costMatrix and assign weights to the grids)
     def fillCostMatrix(self, point_ini, point_end):
-        #NOTE: Make sure self.costMatrix is a 2D numpy array of dimensions dimX x dimY
+        """ Part 1 and 2 of NF1 algorithm (initialize costMatrix and assign weights to the grids) """
 
         #fill costMatrix with zeros
         self.costMatrix = np.zeros((2*self.sizeX+1,2*self.sizeY+1))
@@ -449,11 +448,9 @@ class Map2D:
 
     def planPath(self, x_ini,  y_ini, x_end, y_end):
         """
+        Plans the path that has to be followed by the robot in order to reach the end position.
         x_ini, y_ini, x_end, y_end: integer values that indicate \
             the x and y coordinates of the starting (ini) and ending (end) cell
-
-        NOTE: Make sure self.currentPath is a 2D numpy array
-        ...  TO-DO  ....
         """
         point_ini=[x_ini,y_ini]
         point_end=[x_end,y_end]
@@ -501,8 +498,8 @@ class Map2D:
         pathFound = True
         return pathFound
     
-    #Obtain the current robot´s position with the odometry
     def calculatePosition(self,x,y,th):
+        """ Obtain the current robot´s position with the odometry """
         divX = x / self.sizeCell	
         restoX = divX - int(divX)	
 
@@ -538,8 +535,8 @@ class Map2D:
 
         return resultX,resultY
 
-    #Obtain the current robot´s orientation with the odometry
     def calculateOrientation(self,th):
+        """ Obtain the current robot´s orientation with the odometry """
         angle=0
 
         #right
@@ -560,8 +557,9 @@ class Map2D:
 
         return angle
 
-    #Advance from the current cell to the next target cell if there is no obstacle between them
     def go(self,x_goal, y_goal, robot):
+        """ Advance from the current cell to the next target cell if there is no obstacle between them,
+            if the robot detects and obstacle a wall is marked in the map and returns value TRUE """
         x,y,th=robot.readOdometry()
 
         #calculate the cell you are 
@@ -631,8 +629,8 @@ class Map2D:
 
         return robot.detectObstacle()
 
-    #Allows the robot to go from the initial position to the target
     def move(self,robot):
+        """ Allows the robot to go from the initial position to the target following the planned path """
         index=0
         stop=False
         obstacle=False
@@ -654,8 +652,9 @@ class Map2D:
                     index += 1
     
 
-    #start on a new path if there is an unexpected obstacle
     def replanPath(self, x, y, x_goal, y_goal):
+        """ Replans the path if the robot detects an unexpected obstacle so
+            the robot can reach the goal position """
         print('replaning...', x, y)
         self.planPath(x, y, x_goal, y_goal)
     

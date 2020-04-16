@@ -385,4 +385,5 @@ class Robot:
         return value
 
     def detectObstacle(self):
+        """ Returns true if the sonar detects an object """
         return self.get_distance_sonar()<30

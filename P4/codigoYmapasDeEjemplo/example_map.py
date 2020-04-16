@@ -68,25 +68,12 @@ def main(args):
         myMap.drawMap(saveSnapshot=False)
         
 
-
         #matplotlib.pyplot.close('all')
         # 2. launch updateOdometry thread()
         robot.startOdometry()
-        # ...
-
-        myMap.move(robot)
 
         # 3. perform trajectory
-        # robot.setSpeed(1,1) ...
-        # while (notfinished){
-
-            # robot.go(pathX[i],pathY[i]);
-            # check if there are close obstacles
-            # deal with them...
-            # Avoid_obstacle(...) OR RePlanPath(...)
-
-
-
+        myMap.move(robot)
 
         # 4. wrap up and close stuff ...
         # This currently unconfigure the sensors, disable the motors,
