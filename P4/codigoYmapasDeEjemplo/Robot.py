@@ -37,7 +37,7 @@ class Robot:
 
         # Robot construction parameters
         self.R = 28 # mm
-        self.L = 153.5 # mm
+        self.L = 153.25 # mm
 
         ##################################################
         # Motors and sensors setup
