@@ -556,6 +556,7 @@ class Map2D:
         x_next = (x_goal - self.ref_point_ini[0]) / 2 * self.sizeCell
         y_next = (y_goal - self.ref_point_ini[1]) / 2 * self.sizeCell
         currentX,currentY=self.calculatePosition(round(x/100)*100,round(y/100)*100, currentTh, x_next, y_next)
+        
         #for taking into account from which cell you have started
         currentX+=self.ref_point_ini[0]
         currentY+=self.ref_point_ini[1]
