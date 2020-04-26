@@ -61,7 +61,7 @@ def main(args):
         #myMap.drawMapWithRobotLocations( sampleRobotLocations, saveSnapshot=False )
 
         point_ini=np.array([1,1])
-        point_end=np.array([5,5])
+        point_end=np.array([5,1])
         
         myMap.findPath(point_ini,point_end)
         print(myMap.costMatrix.transpose())

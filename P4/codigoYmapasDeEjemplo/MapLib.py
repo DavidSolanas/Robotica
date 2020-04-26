@@ -50,7 +50,6 @@ class Map2D:
 
         self.point_ini = None
         self.point_end = None
-        self.ref_point_ini = None
 
         if self._loadMap(map_description_file):
             print("Map %s loaded ok" % map_description_file)
@@ -398,29 +397,37 @@ class Map2D:
 
     def fillCostMatrixR(self,x_end, y_end, cost):
         """ Calculate the weight of the grids (NF1) """
+        r = False
         #right
         if self.costMatrix[x_end+1,y_end] != -1 and x_end+2 <= 2*self.sizeX:
             if self.costMatrix[x_end+2,y_end] < -1 or self.costMatrix[x_end+2,y_end] > cost:
+                r = True
                 self.costMatrix[x_end+2,y_end] = cost
                 self.fillCostMatrixR(x_end+2,y_end, cost+1)
 
         #left
         if self.costMatrix[x_end-1,y_end] != -1 and x_end-2 >= 0:
             if self.costMatrix[x_end-2,y_end] < -1 or self.costMatrix[x_end-2,y_end] > cost:
+                r = True
                 self.costMatrix[x_end-2,y_end] = cost
                 self.fillCostMatrixR(x_end-2,y_end, cost+1)
 
         #top
         if self.costMatrix[x_end,y_end+1] != -1 and y_end+2 <= 2*self.sizeY:
             if self.costMatrix[x_end,y_end+2] < -1 or self.costMatrix[x_end,y_end+2] > cost:
+                r = True
                 self.costMatrix[x_end,y_end+2] = cost
                 self.fillCostMatrixR(x_end,y_end+2, cost+1)
 
         #down
         if self.costMatrix[x_end,y_end-1] != -1 and y_end-2 >= 0:
             if self.costMatrix[x_end,y_end-2] < -1 or self.costMatrix[x_end,y_end-2] > cost:
+                r = True
                 self.costMatrix[x_end,y_end-2] = cost
                 self.fillCostMatrixR(x_end,y_end-2, cost+1)
+
+        if not r:
+            return
 
     def fillCostMatrix(self, point_ini, point_end):
         """ Part 1 and 2 of NF1 algorithm (initialize costMatrix and assign weights to the grids) """
@@ -438,8 +445,6 @@ class Map2D:
 
         #save initial position
         self.point_ini = point_ini
-        if self.ref_point_ini is None:
-            self.ref_point_ini = point_ini
         #save goal position
         self.point_end = point_end
 
@@ -495,7 +500,6 @@ class Map2D:
             self.currentPath[index] = [x,y]
 
             index+=1	
-        print(self.currentPath)
         pathFound = True
         return pathFound
     
@@ -521,7 +525,7 @@ class Map2D:
         else:
             _y = int(round(d_y)) * 2
 
-        return _x, _y
+        return _x + 1, _y + 1
 
 
     def calculateOrientation(self,th):
@@ -553,13 +557,10 @@ class Map2D:
 
         #calculate the cell you are 
         currentTh = self.calculateOrientation(th)
-        x_next = (x_goal - self.ref_point_ini[0]) / 2 * self.sizeCell
-        y_next = (y_goal - self.ref_point_ini[1]) / 2 * self.sizeCell
+        x_next = x_goal / 2 * self.sizeCell
+        y_next = y_goal / 2 * self.sizeCell
         currentX,currentY=self.calculatePosition(round(x/100)*100,round(y/100)*100, currentTh, x_next, y_next)
         
-        #for taking into account from which cell you have started
-        currentX+=self.ref_point_ini[0]
-        currentY+=self.ref_point_ini[1]
         
         #calculate the robot´s orientation (it can be only in 4 positions)
         vertical = y_goal - currentY
@@ -577,8 +578,19 @@ class Map2D:
                 
         #orient the robot facing the grid to which it has to move
         if angle != 0:
-            robot.setSpeed(0,angle)
-            time.sleep(1)
+            rot = np.pi / 2 if angle > 0 else -np.pi/2
+            robot.setSpeed(0, rot)
+            time.sleep(2 * abs(angle) / np.pi)
+
+        """
+        if angle != 0:
+            th_gyro = robot.get_gyro()
+            while th_gyro > (currentTh + angle + 0.005) or th_gyro < (currentTh + angle - 0.005):
+                robot.setSpeed(0,angle)
+                time.sleep(.008)
+                th_gyro = robot.get_gyro()
+                print(th_gyro) 
+        """
         
         #stop moving
         robot.setSpeed(0,0)
@@ -593,8 +605,6 @@ class Map2D:
             x,y, th = robot.readOdometry()
             currentTh = self.calculateOrientation(th)
             currentX,currentY=self.calculatePosition(x,y, currentTh, x_next, y_next)
-            currentX+=self.ref_point_ini[0]
-            currentY+=self.ref_point_ini[1]
             time.sleep(0.005)
         
         #if an obstacle was detected, we calculate where it is based on the orientation of the robot

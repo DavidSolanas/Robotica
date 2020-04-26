@@ -26,8 +26,8 @@ letter_s = 115
 # max number of features to extract per image
 MAX_FEATURES = 500
 # REQUIRED number of correspondences (matches) found:
-MIN_MATCH_COUNT=20          # initially
-MIN_MATCH_OBJECTFOUND=15    # after robust check, to consider object-found
+MIN_MATCH_COUNT=7          # initially
+MIN_MATCH_OBJECTFOUND=7    # after robust check, to consider object-found
 
 
 def drawMatches2(img1, kp1, img2, kp2, matches, color=None, thickness = 2, mask=None): 
@@ -185,7 +185,7 @@ def find_template(mirror=False, img=None, refFilename = "R2-D2s.png"):
             cam.capture(rawCapture, format="bgr")
             frame = rawCapture.array  
             
-            frame = cv2.flip(frame, -1) # to rotate 180
+            # frame = cv2.flip(frame, -1) # to rotate 180
             if DEBUG > 2:
                 cv2.imshow("Current view", frame)
                 cv2.imshow("Current target", imReference)

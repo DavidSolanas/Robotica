@@ -48,6 +48,12 @@ class Robot:
         # Configure sensors, for example a touch sensor.
         self.BP.set_sensor_type(self.BP.PORT_1, self.BP.SENSOR_TYPE.TOUCH)
 
+        # Configure for an EV3 gyro sensor.
+        # BP.set_sensor_type configures the BrickPi3 for a specific sensor.
+        # BP.PORT_2 specifies that the sensor will be on sensor port 2.
+        # BP.Sensor_TYPE.EV3_GYRO_ABS_DPS specifies that the sensor will be an EV3 gyro sensor.
+        self.BP.set_sensor_type(self.BP.PORT_2, self.BP.SENSOR_TYPE.EV3_GYRO_ABS_DPS)
+
         # reset encoder B-right and C-left (or all the motors you are using)
         self.BP.offset_motor_encoder(self.BP.PORT_B,
             self.BP.get_motor_encoder(self.BP.PORT_B))
@@ -386,4 +392,10 @@ class Robot:
 
     def detectObstacle(self):
         """ Returns true if the sonar detects an object """
-        return self.get_distance_sonar()<30
+        return 2 < self.get_distance_sonar() < 30
+
+    def get_gyro(self):
+        """ Returns the value read by the gyroscope in radians """
+        value = self.BP.get_sensor(self.BP.PORT_2)[0]   # print the gyro sensor values
+        value = self.norm_pi(np.radians(value))
+        return value * -1
