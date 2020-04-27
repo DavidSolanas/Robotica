@@ -17,6 +17,7 @@ import numpy as np
 import time
 from Robot import Robot
 import math
+from MapLib import Map2D
 
 
 def slalom(robot, map_a):
@@ -77,10 +78,18 @@ def main(m, r, a):
     try:
         if a:
             robot = Robot(init_position=[600.0, 2600.0, np.pi])
+            point_ini=np.array([3,5])
+            point_end=np.array([7,5])
         else:
             robot = Robot(init_position=[2200.0, 2600.0, 0])
+            point_ini=np.array([11,5])
+            point_end=np.array([7,5])
 
         slalom(robot, a)
+    
+        myMap = Map2D(m)
+        myMap.findPath(point_ini,point_end)
+
         # ...
         """
         # 1. load map and compute costs and path
