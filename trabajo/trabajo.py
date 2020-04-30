@@ -27,29 +27,31 @@ def slalom(robot, map_a):
         
         # Leer coordenadas del robot
         x, y, th = robot.readOdometry()
-
+        print(x, y, th)
         if estado == 0:
             # estado 1, empieza la trayectoria
                 estado = 1
                 # Actualizar velocidad
                 if map_a:
-                    robot.setSpeed(100*math.pi, math.pi/4.)
+                    robot.setSpeed(400*np.pi/5, np.pi/5.)
                 else:
-                    robot.setSpeed(100*math.pi, -math.pi/4.)
+                    robot.setSpeed(400*np.pi/5, -np.pi/5.)
 
         elif estado == 1:
             # estado 2, llega al centro del 8
-            if 1795 <= y <= 1805:
-                estado = 3
+            if (599 <= x <= 601 and 1795 <= y <= 1805 and map_a) or \
+                (2199 <= x <= 2201 and 1795 <= y <= 1805 and  not map_a):
+                estado = 2
                 # Actualizar velocidad
                 if map_a:
-                    robot.setSpeed(100*math.pi, -math.pi/4.)
+                    robot.setSpeed(400*np.pi/5, -np.pi/5.)
                 else:
-                    robot.setSpeed(100*math.pi, math.pi/4.)
+                    robot.setSpeed(400*np.pi/5, np.pi/5.)
 
-        elif estado == 3:
+        elif estado == 2:
             # estado 3, llega arriba del 8
-            if 995 <= y <= 1005:
+            if (599 <= x <= 625 and 995 <= y <= 1005 and map_a) or \
+                (2199 <= x <= 2225 and 995 <= y <= 1005 and  not map_a):
                 stop = True
 
         time.sleep(0.005)
@@ -58,17 +60,16 @@ def slalom(robot, map_a):
 
     x, y, th = robot.readOdometry()
 
-    th_goal = -np.pi / 2
-    stop = th_goal - 0.01 < th < th_goal + 0.01
+    th_goal = 0 if map_a else np.pi
+    stop = th_goal - 0.005 < th < th_goal + 0.005
+    if map_a:
+        robot.setSpeed(0, np.pi / 2)
+    else:
+        robot.setSpeed(0, -np.pi / 2)
     while not stop:
         _, _, th = robot.readOdometry()
-        if map_a:
-            robot.setSpeed(0, np.pi / 2)
-        else:
-            robot.setSpeed(0, -np.pi / 2)
-        
         time.sleep(0.005)
-        stop = th_goal - 0.01 < th < th_goal + 0.01
+        stop = th_goal - 0.02 < th < th_goal + 0.02
 
     robot.setSpeed(0, 0)
     return
@@ -76,22 +77,57 @@ def slalom(robot, map_a):
 
 def main(m, r, a):
     try:
+        
         if a:
             robot = Robot(init_position=[600.0, 2600.0, np.pi])
             point_ini=np.array([3,5])
             point_end=np.array([7,5])
+            map_file = 'mapas/mapaA_CARRERA2020.txt'
         else:
             robot = Robot(init_position=[2200.0, 2600.0, 0])
             point_ini=np.array([11,5])
             point_end=np.array([7,5])
-
+            map_file = 'mapas/mapaB_CARRERA2020.txt'
+        
+        
+        robot.startOdometry()
         slalom(robot, a)
     
-        myMap = Map2D(m)
+        myMap = Map2D(map_file)
         myMap.findPath(point_ini,point_end)
+        time.sleep(0.5)
+        myMap.move(robot)
 
-        # ...
+        robot.stopOdometry()
         """
+        robot.startOdometry()
+        robot.setSpeed(100, 0)
+        time.sleep(2)
+        robot.setSpeed(0, -np.pi/3)
+        stop = False
+        while not stop:
+            gyro = robot.get_gyro()
+            print(gyro)
+            time.sleep(.005)
+            stop = abs(gyro) >= 84
+        
+        robot.setSpeed(0,0)
+        time.sleep(1.0)
+        aux = robot.get_gyro()
+        robot.setSpeed(0, np.pi/3)
+        stop = False
+        while not stop:
+            gyro = robot.get_gyro()
+            print(gyro)
+            time.sleep(.005)
+            stop = gyro >= (aux + 84)
+        # myMap = Map2D(m)
+        # myMap.findPath(point_ini,point_end)
+        print(robot.readOdometry())
+        robot.setSpeed(100, 0)
+        time.sleep(2)
+        robot.stopOdometry()
+        
         # 1. load map and compute costs and path
         myMap = Map2D(map_file)
         #myMap.verbose = True

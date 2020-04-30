@@ -36,8 +36,8 @@ class Robot:
         """
 
         # Robot construction parameters
-        self.R = 28 # mm
-        self.L = 153.55 # mm
+        self.R = 26 # mm
+        self.L = 157 # mm
 
         ##################################################
         # Motors and sensors setup
@@ -46,13 +46,14 @@ class Robot:
         self.BP = brickpi3.BrickPi3()
 
         # Configure sensors, for example a touch sensor.
-        self.BP.set_sensor_type(self.BP.PORT_1, self.BP.SENSOR_TYPE.TOUCH)
+        # self.BP.set_sensor_type(self.BP.PORT_1, self.BP.SENSOR_TYPE.TOUCH)
 
         # Configure for an EV3 gyro sensor.
         # BP.set_sensor_type configures the BrickPi3 for a specific sensor.
         # BP.PORT_2 specifies that the sensor will be on sensor port 2.
         # BP.Sensor_TYPE.EV3_GYRO_ABS_DPS specifies that the sensor will be an EV3 gyro sensor.
-        self.BP.set_sensor_type(self.BP.PORT_2, self.BP.SENSOR_TYPE.EV3_GYRO_ABS_DPS)
+        # self.BP.set_sensor_type(self.BP.PORT_2, self.BP.SENSOR_TYPE.EV3_GYRO_ABS_DPS)
+        self.BP.set_sensor_type(self.BP.PORT_2, self.BP.SENSOR_TYPE.EV3_GYRO_ABS_DPS) # Configure for an analog on sensor port pin 1, and poll the analog line on pin 1.
 
         # reset encoder B-right and C-left (or all the motors you are using)
         self.BP.offset_motor_encoder(self.BP.PORT_B,
@@ -397,9 +398,8 @@ class Robot:
 
     def get_gyro(self):
         """ Returns the value read by the gyroscope in radians """
-        value = self.BP.get_sensor(self.BP.PORT_2)[0]   # print the gyro sensor values
-        value = self.norm_pi(np.radians(value))
-        return value * -1
+        value = self.BP.get_sensor(self.BP.PORT_2) # read the sensor port value
+        return value[0] * -1
 
      
  

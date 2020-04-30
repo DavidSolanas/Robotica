@@ -507,8 +507,8 @@ class Map2D:
         """ Obtain the current robot´s position with the odometry """
         res_x = x_goal - x
         res_y = y_goal - y
-        d_x = x / self.sizeCell
-        d_y = y / self.sizeCell
+        d_x = (x - 200) / self.sizeCell
+        d_y = (y - 200) / self.sizeCell
         if th == 0 or th == np.pi:
             if abs(res_x) < 1:
                 _x = int(math.ceil(d_x)) * 2
@@ -557,9 +557,13 @@ class Map2D:
 
         #calculate the cell you are 
         currentTh = self.calculateOrientation(th)
-        x_next = x_goal / 2 * self.sizeCell
-        y_next = y_goal / 2 * self.sizeCell
+        x_next = (x_goal / 2 * self.sizeCell)
+        y_next = (y_goal / 2 * self.sizeCell)
+        print(x, y)
+        print(round(x/100)*100,round(y/100)*100)
         currentX,currentY=self.calculatePosition(round(x/100)*100,round(y/100)*100, currentTh, x_next, y_next)
+        print(x_next, y_next)
+        print(currentX, currentY, currentTh)
         
         
         #calculate the robot´s orientation (it can be only in 4 positions)
@@ -577,20 +581,19 @@ class Map2D:
                 angle =  -np.pi - currentTh if currentTh < 0 else np.pi - currentTh
                 
         #orient the robot facing the grid to which it has to move
+        th_goal = robot.norm_pi(currentTh + angle)
+        stop = False
         if angle != 0:
-            rot = np.pi / 2 if angle > 0 else -np.pi/2
-            robot.setSpeed(0, rot)
-            time.sleep(2 * abs(angle) / np.pi)
-
-        """
-        if angle != 0:
-            th_gyro = robot.get_gyro()
-            while th_gyro > (currentTh + angle + 0.005) or th_gyro < (currentTh + angle - 0.005):
-                robot.setSpeed(0,angle)
-                time.sleep(.008)
-                th_gyro = robot.get_gyro()
-                print(th_gyro) 
-        """
+            if angle > 0:
+                robot.setSpeed(0, np.pi / 2)
+            else:
+                robot.setSpeed(0, -np.pi / 2)
+                
+            while not stop:
+                _, _, th = robot.readOdometry()
+                time.sleep(0.005)
+                stop = th_goal - 0.05 < th < th_goal + 0.05
+        
         
         #stop moving
         robot.setSpeed(0,0)
