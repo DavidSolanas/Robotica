@@ -50,8 +50,8 @@ def slalom(robot, map_a):
 
         elif estado == 2:
             # estado 3, llega arriba del 8
-            if (599 <= x <= 625 and 995 <= y <= 1005 and map_a) or \
-                (2199 <= x <= 2225 and 995 <= y <= 1005 and  not map_a):
+            if (599 <= x <= 625 and 995 <= y <= 1008 and map_a) or \
+                (2199 <= x <= 2225 and 995 <= y <= 1008 and  not map_a):
                 stop = True
 
         time.sleep(0.005)
@@ -61,18 +61,71 @@ def slalom(robot, map_a):
     x, y, th = robot.readOdometry()
 
     th_goal = 0 if map_a else np.pi
-    stop = th_goal - 0.005 < th < th_goal + 0.005
-    if map_a:
-        robot.setSpeed(0, np.pi / 2)
-    else:
-        robot.setSpeed(0, -np.pi / 2)
-    while not stop:
-        _, _, th = robot.readOdometry()
-        time.sleep(0.005)
-        stop = th_goal - 0.02 < th < th_goal + 0.02
+    robot.rot(th_goal)
 
     robot.setSpeed(0, 0)
     return
+
+
+def find_exit(robot, map_a):
+    r2_d2 = 'robots/R2-D2_s.png'
+    bb8 = 'robots/BB8_s.png'
+    img_r2 = cv2.imread(r2_d2)
+    img_bb8 = cv2.imread(bb8)
+    frame = robot.get_photo()
+    frame = cv2.cvtColor(frame, cv2.COLOR_HSV2BGR)
+    found1 = False
+    found2 = False
+    while (not found1) and (not found2):
+        found1, pts1 = robot.find_template(img_captured=frame, imReference=img_r2)
+        found2, pts2 = robot.find_template(img_captured=frame, imReference=img_bb8)
+    
+    # MEDIA pts1 y pts2
+
+    if map_a:
+        # PTS1 es lo q buscamos
+        if pts1 < pts2:
+            # Salir por la izq
+            robot.rot(np.pi)
+            pass
+        else:
+            # Salir por la derecha
+            robot.rot(0)
+            pass
+    else:
+        # PTS2 es lo q buscamos
+        if pts2 < pts1:
+            # Salir por la izq
+            robot.rot(np.pi)
+            pass
+        else:
+            # Salir por la dch
+            robot.rot(0)
+            pass
+
+    return
+
+
+def _exit(robot):
+    robot.setSpeed(200,0)
+
+    while not robot.detectObstacle():
+        time.sleep(0.02)
+    
+    robot.setSpeed(0, 0)
+    time.sleep(0.002)
+    robot.rot(np.pi)
+    time.sleep(0.002)
+
+    robot.setSpeed(200, 0)
+    _, y, _ = robot.readOdometry()
+    while y < 2800:
+        time.sleep(0.02)
+        _, y, _ = robot.readOdometry()
+    
+    robot.setSpeed(0, 0)
+    return
+
 
 
 def main(m, r, a):
@@ -97,6 +150,23 @@ def main(m, r, a):
         myMap.findPath(point_ini,point_end)
         time.sleep(0.5)
         myMap.move(robot)
+
+        th_goal = np.pi / 2
+        robot.rot(th_goal)
+
+        robot.setSpeed(400, 0)
+        time.sleep(1)
+        robot.setSpeed(0, 0)
+
+        robot.trackObject()
+        # Catch the object
+        robot.catch()
+
+        robot.rot(th_goal)
+
+        find_exit(robot, map_a)
+        _exit(robot)
+
 
         robot.stopOdometry()
         """

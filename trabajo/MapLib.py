@@ -527,6 +527,10 @@ class Map2D:
 
         return _x + 1, _y + 1
 
+    def aux(self, x, y):
+        d_x = (x - 200) / self.sizeCell
+        d_y = (y - 200) / self.sizeCell
+        return int(round(d_x))*2 + 1, int(round(d_y))*2 + 1
 
     def calculateOrientation(self,th):
         """ Obtain the current robot´s orientation with the odometry """
@@ -560,8 +564,10 @@ class Map2D:
         x_next = (x_goal / 2 * self.sizeCell)
         y_next = (y_goal / 2 * self.sizeCell)
         print(x, y)
-        print(round(x/100)*100,round(y/100)*100)
-        currentX,currentY=self.calculatePosition(round(x/100)*100,round(y/100)*100, currentTh, x_next, y_next)
+        aux_x, aux_y = self.aux(x,y)
+        aux_x = (aux_x / 2 * self.sizeCell)
+        aux_y = (aux_y / 2 * self.sizeCell)
+        currentX,currentY=self.calculatePosition(aux_x,aux_y, currentTh, x_next, y_next)
         print(x_next, y_next)
         print(currentX, currentY, currentTh)
         
@@ -582,17 +588,9 @@ class Map2D:
                 
         #orient the robot facing the grid to which it has to move
         th_goal = robot.norm_pi(currentTh + angle)
-        stop = False
+
         if angle != 0:
-            if angle > 0:
-                robot.setSpeed(0, np.pi / 2)
-            else:
-                robot.setSpeed(0, -np.pi / 2)
-                
-            while not stop:
-                _, _, th = robot.readOdometry()
-                time.sleep(0.005)
-                stop = th_goal - 0.05 < th < th_goal + 0.05
+            robot.rot(th_goal)
         
         
         #stop moving

@@ -37,7 +37,7 @@ class Robot:
 
         # Robot construction parameters
         self.R = 26 # mm
-        self.L = 157 # mm
+        self.L = 161 # mm
 
         ##################################################
         # Motors and sensors setup
@@ -214,6 +214,23 @@ class Robot:
     def stopOdometry(self):
         self.finished.value = True
         self.BP.reset_all()
+
+
+    def rot(self, th_goal):
+        _, _, th = self.readOdometry()
+        if th < th_goal:
+            self.setSpeed(0, np.pi / 2)
+        else:
+            self.setSpeed(0, -np.pi / 2)
+        stop = th_goal - 0.02 < th < th_goal + 0.02
+        while not stop:
+            time.sleep(0.005)
+            _, _, th = self.readOdometry()
+            stop = th_goal - 0.02 < th < th_goal + 0.02
+        
+        return
+
+
 
 
     # Get an image
@@ -394,7 +411,7 @@ class Robot:
 
     def detectObstacle(self):
         """ Returns true if the sonar detects an object """
-        return 2 < self.get_distance_sonar() < 30
+        return 2 < self.get_distance_sonar() < 25
 
     def get_gyro(self):
         """ Returns the value read by the gyroscope in radians """
