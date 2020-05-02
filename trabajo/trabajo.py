@@ -67,41 +67,108 @@ def slalom(robot, map_a):
     return
 
 
+def slalom2(robot, map_a):
+    stop = False
+    estado = 0
+    while not stop:
+        
+        # Leer coordenadas del robot
+        x, y, th = robot.readOdometry()
+        print(x, y, th)
+        if estado == 0:
+            # estado 1, empieza la trayectoria
+            estado = 1
+            # Actualizar velocidad
+            robot.setSpeed(200, 0)
+                
+        elif estado == 1:
+            # estado 2, llega al centro del 8
+            if (199 <= x <= 201 and map_a) or (2599 <= x <= 2601 and  not map_a):
+                estado = 2
+                # Actualizar velocidad
+                s = 1 if map_a else -1
+                robot.rot(-np.pi / 2, sign=s)
+                robot.setSpeed(200, 0)
+
+        elif estado == 2:
+            # estado 3, llega arriba del 8
+            if 1799 <= y <= 1801:
+                estado = 3
+                if map_a:
+                    robot.rot(0)
+                else:
+                    robot.rot(np.pi)
+                robot.setSpeed(200, 0)
+
+        elif estado == 3:
+            # estado 3, llega arriba del 8
+            if (999 <= x <= 1001 and map_a) or (1799 <= x <= 1801 and  not map_a):
+                estado = 4
+                s = -1 if map_a else 1
+                robot.rot(-np.pi / 2, sign=s)
+                robot.setSpeed(200, 0)
+        
+        elif estado == 4:
+            # estado 3, llega arriba del 8
+            if 999 <= y <= 1001:
+                estado = 5
+                if map_a:
+                    print('AAAAAAAAAAAAAAAAAAAAAA\n')
+                    robot.rot(np.pi, sign=-1, offset=0.5)
+                else:
+                    robot.rot(0, sign=1)
+                robot.setSpeed(200, 0)
+            
+        elif estado == 5:
+            # estado 3, llega arriba del 8
+            if (599 <= x <= 601 and map_a) or (2199 <= x <= 2201 and  not map_a):
+                if map_a:
+                    robot.rot(0, sign=1)
+                else:
+                    robot.rot(np.pi, sign=-1)
+                
+                robot.setSpeed(0, 0)
+                stop = True
+
+        time.sleep(0.005)
+
+    return
+
 def find_exit(robot, map_a):
     r2_d2 = 'robots/R2-D2_s.png'
     bb8 = 'robots/BB8_s.png'
     img_r2 = cv2.imread(r2_d2)
     img_bb8 = cv2.imread(bb8)
-    frame = robot.get_photo()
-    frame = cv2.cvtColor(frame, cv2.COLOR_HSV2BGR)
     found1 = False
     found2 = False
     while (not found1) and (not found2):
+        frame = robot.get_photo()
+        frame = cv2.cvtColor(frame, cv2.COLOR_HSV2BGR)
         found1, pts1 = robot.find_template(img_captured=frame, imReference=img_r2)
         found2, pts2 = robot.find_template(img_captured=frame, imReference=img_bb8)
     
-    # MEDIA pts1 y pts2
-
+    x_pts1 = np.mean(pts1[:, 0][:, 0])
+    x_pts2 = np.mean(pts2[:, 0][:, 0])
+    
     if map_a:
         # PTS1 es lo q buscamos
-        if pts1 < pts2:
+        if x_pts1 < x_pts2:
             # Salir por la izq
             robot.rot(np.pi)
-            pass
+
         else:
             # Salir por la derecha
             robot.rot(0)
-            pass
+
     else:
         # PTS2 es lo q buscamos
-        if pts2 < pts1:
+        if x_pts2 < x_pts1:
             # Salir por la izq
             robot.rot(np.pi)
-            pass
+
         else:
             # Salir por la dch
             robot.rot(0)
-            pass
 
     return
 
@@ -110,11 +177,12 @@ def _exit(robot):
     robot.setSpeed(200,0)
 
     while not robot.detectObstacle():
+        print(robot.get_distance_sonar())
         time.sleep(0.02)
     
     robot.setSpeed(0, 0)
     time.sleep(0.002)
-    robot.rot(np.pi)
+    robot.rot(np.pi / 2)
     time.sleep(0.002)
 
     robot.setSpeed(200, 0)
@@ -132,7 +200,7 @@ def main(m, r, a):
     try:
         
         if a:
-            robot = Robot(init_position=[600.0, 2600.0, np.pi])
+            robot = Robot(init_position=[600.0, 2600.0, np.pi / 2])
             point_ini=np.array([3,5])
             point_end=np.array([7,5])
             map_file = 'mapas/mapaA_CARRERA2020.txt'
@@ -144,6 +212,7 @@ def main(m, r, a):
         
         
         robot.startOdometry()
+        """
         slalom(robot, a)
     
         myMap = Map2D(map_file)
@@ -163,13 +232,28 @@ def main(m, r, a):
         robot.catch()
 
         robot.rot(th_goal)
-
+        """
+        #slalom2(robot, a)
+        
+        time.sleep(10)
         find_exit(robot, map_a)
         _exit(robot)
-
-
         robot.stopOdometry()
         """
+        robot.setSpeed(200, 0)
+        time.sleep(2)
+
+        robot.setSpeed(0,0)
+        time.sleep(0.02)
+
+        robot.setSpeed(0, np.pi / 2)
+        time.sleep(1)
+
+        robot.setSpeed(0,0)
+        time.sleep(0.02)
+
+        robot.setSpeed(200, 0)
+        time.sleep(2)
         robot.startOdometry()
         robot.setSpeed(100, 0)
         time.sleep(2)

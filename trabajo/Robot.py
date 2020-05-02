@@ -36,8 +36,8 @@ class Robot:
         """
 
         # Robot construction parameters
-        self.R = 26 # mm
-        self.L = 161 # mm
+        self.R = 27 # mm
+        self.L = 153 # mm
 
         ##################################################
         # Motors and sensors setup
@@ -216,17 +216,20 @@ class Robot:
         self.BP.reset_all()
 
 
-    def rot(self, th_goal):
+    def rot(self, th_goal, sign=0, offset=0.1):
         _, _, th = self.readOdometry()
-        if th < th_goal:
-            self.setSpeed(0, np.pi / 2)
+        if sign != 0:
+            self.setSpeed(0, sign*np.pi / 3)
         else:
-            self.setSpeed(0, -np.pi / 2)
-        stop = th_goal - 0.02 < th < th_goal + 0.02
+            if th < th_goal:
+                self.setSpeed(0, np.pi / 3)
+            else:
+                self.setSpeed(0, -np.pi / 3)
+        stop = th_goal - offset < th < th_goal + offset
         while not stop:
             time.sleep(0.005)
             _, _, th = self.readOdometry()
-            stop = th_goal - 0.02 < th < th_goal + 0.02
+            stop = th_goal - offset < th < th_goal + offset
         
         return
 
@@ -302,7 +305,7 @@ class Robot:
 
         if kp_ball is None:
             return False, -1, -1, -1
-        
+
         return True, kp_ball.pt[0], kp_ball.pt[1], kp_ball.size
 
 
@@ -348,10 +351,11 @@ class Robot:
             frame = self.get_photo()
             # Search the blob and get its coordinates in the image
             visible, x_blob, y_blob, area_blob = self.detect_blobs(frame)
+            print(visible, x_blob, y_blob, area_blob)
             # Check if is visible or not, if not then search the blob again
             if not visible:
                 # Check if the robot has to rotate to left or right
-                if x_blob_ant > 160:
+                if x_blob_ant > 320:
                     # Rotate to right
                     w = -np.pi / 3
                 else:
@@ -361,11 +365,11 @@ class Robot:
                 x_blob, y_blob, area_blob = self.search_ball(w)
 
             # Calculate the offset of the blob from the center of the image
-            offset = 160 - x_blob
+            offset = 320 - x_blob
 
             # Recalculate stop conditions
-            stop_y = y_blob > 200
-            stop_x = abs(offset) < 7
+            stop_y = y_blob > 420
+            stop_x = abs(offset) < 10
 
             # Assign the velocities, offset * .002 because .002 is the period of
             # the loop
@@ -409,9 +413,9 @@ class Robot:
         value = self.BP.get_sensor(self.BP.PORT_1)
         return value
 
-    def detectObstacle(self):
+    def detectObstacle(self, max_=25):
         """ Returns true if the sonar detects an object """
-        return 2 < self.get_distance_sonar() < 25
+        return 2 < self.get_distance_sonar() < max_
 
     def get_gyro(self):
         """ Returns the value read by the gyroscope in radians """
@@ -425,7 +429,7 @@ class Robot:
         MAX_FEATURES = 500
         # REQUIRED number of correspondences (matches) found:
         MIN_MATCH_COUNT=20          # initially
-        MIN_MATCH_OBJECTFOUND=15    # after robust check, to consider object-found
+        MIN_MATCH_OBJECTFOUND=8    # after robust check, to consider object-found
 
         # Feature extractor uses grayscale images
         img1 = cv2.cvtColor(img1_bgr, cv2.COLOR_BGR2GRAY)
