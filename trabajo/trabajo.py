@@ -113,8 +113,7 @@ def slalom2(robot, map_a):
             if 999 <= y <= 1001:
                 estado = 5
                 if map_a:
-                    print('AAAAAAAAAAAAAAAAAAAAAA\n')
-                    robot.rot(np.pi, sign=-1, offset=0.5)
+                    robot.rot(np.pi, sign=-1)
                 else:
                     robot.rot(0, sign=1)
                 robot.setSpeed(200, 0)
@@ -134,21 +133,77 @@ def slalom2(robot, map_a):
 
     return
 
+
+def get_center(robot,map_a):
+    if map_a:
+        robot.rot(0)
+    else:
+        robot.rot(np.pi)
+    
+    robot.setSpeed(0,0)
+    time.sleep(0.02)
+
+    d_x = robot.get_distance_sonar()
+    v = d_x - 80
+    stop = False
+    if v > 0:
+        robot.setSpeed(100, 0)
+    else:
+        robot.setSpeed(-100, 0)
+    
+    while not stop:
+        time.sleep(0.02)
+        d_x = robot.get_distance_sonar()
+        stop = 78 < d_x < 82
+
+    robot.setSpeed(0,0)
+    time.sleep(0.02)
+
+    robot.rot(np.pi/2)
+
+    robot.setSpeed(0,0)
+    time.sleep(0.02)
+
+    d_y = robot.get_distance_sonar()
+    v = d_y - 60
+    stop = False
+    if v > 0:
+        robot.setSpeed(100, 0)
+    else:
+        robot.setSpeed(-100, 0)
+    
+    while not stop:
+        time.sleep(0.02)
+        d_y = robot.get_distance_sonar()
+        stop = 58 < d_y < 62
+
+    robot.setSpeed(0,0)
+    time.sleep(0.02)
+
+    return
+
+
 def find_exit(robot, map_a):
+    get_center(robot,map_a)
     r2_d2 = 'robots/R2-D2_s.png'
     bb8 = 'robots/BB8_s.png'
     img_r2 = cv2.imread(r2_d2)
     img_bb8 = cv2.imread(bb8)
     found1 = False
     found2 = False
-    while (not found1) and (not found2):
+    while (not found1) or (not found2):
         frame = robot.get_photo()
         frame = cv2.cvtColor(frame, cv2.COLOR_HSV2BGR)
-        found1, pts1 = robot.find_template(img_captured=frame, imReference=img_r2)
-        found2, pts2 = robot.find_template(img_captured=frame, imReference=img_bb8)
+        cv2.imshow("A", frame)
+        cv2.waitKey()
+        if not found1:
+            found1, pts1 = robot.find_template(img_captured=frame, imReference=img_r2)
+        if not found2:
+            found2, pts2 = robot.find_template(img_captured=frame, imReference=img_bb8)
     
     x_pts1 = np.mean(pts1[:, 0][:, 0])
     x_pts2 = np.mean(pts2[:, 0][:, 0])
+    
     
     if map_a:
         # PTS1 es lo q buscamos
@@ -169,7 +224,8 @@ def find_exit(robot, map_a):
         else:
             # Salir por la dch
             robot.rot(0)
-
+    robot.setSpeed(0, 0)
+    
     return
 
 
@@ -183,6 +239,7 @@ def _exit(robot):
     robot.setSpeed(0, 0)
     time.sleep(0.002)
     robot.rot(np.pi / 2)
+    robot.setSpeed(0, 0)
     time.sleep(0.002)
 
     robot.setSpeed(200, 0)
@@ -200,7 +257,7 @@ def main(m, r, a):
     try:
         
         if a:
-            robot = Robot(init_position=[600.0, 2600.0, 0])
+            robot = Robot(init_position=[600.0, 2600.0, np.pi])
             point_ini=np.array([3,5])
             point_end=np.array([7,5])
             map_file = 'mapas/mapaA_CARRERA2020.txt'
@@ -212,8 +269,8 @@ def main(m, r, a):
         
         
         robot.startOdometry()
-        """
-        slalom(robot, a)
+        
+        slalom2(robot, a)
     
         myMap = Map2D(map_file)
         myMap.findPath(point_ini,point_end)
@@ -223,20 +280,26 @@ def main(m, r, a):
         th_goal = np.pi / 2
         robot.rot(th_goal)
 
-        robot.setSpeed(400, 0)
-        time.sleep(1)
+        robot.setSpeed(200, 0)
+        time.sleep(2)
         robot.setSpeed(0, 0)
-
+        th_goal = np.pi / 2
         robot.trackObject()
         # Catch the object
         robot.catch()
 
         robot.rot(th_goal)
+        robot.setSpeed(0,0)
+        time.sleep(0.02)
+        
         find_exit(robot, map_a)
         _exit(robot)
+
         robot.stopOdometry()
         """
-        #slalom2(robot, a)
+        slalom2(robot, a)
+        robot.stopOdometry()
+        
         
         robot.setSpeed(200, 0)
         time.sleep(2)
@@ -253,7 +316,6 @@ def main(m, r, a):
         time.sleep(2)
 
         robot.stopOdometry()
-        """
         robot.startOdometry()
         robot.setSpeed(100, 0)
         time.sleep(2)

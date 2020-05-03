@@ -368,7 +368,7 @@ class Robot:
             offset = 320 - x_blob
 
             # Recalculate stop conditions
-            stop_y = y_blob > 420
+            stop_y = y_blob > 380 or stop_y
             stop_x = abs(offset) < 10
 
             # Assign the velocities, offset * .002 because .002 is the period of
@@ -388,8 +388,8 @@ class Robot:
         time.sleep(0.001)
 
         # Get a little closer to the blob
-        self.setSpeed(165, 0)
-        time.sleep(0.5)
+        self.setSpeed(155, 0)
+        time.sleep(0.8)
         self.setSpeed(0, 0)
 
 
@@ -429,7 +429,7 @@ class Robot:
         MAX_FEATURES = 500
         # REQUIRED number of correspondences (matches) found:
         MIN_MATCH_COUNT=20          # initially
-        MIN_MATCH_OBJECTFOUND=8    # after robust check, to consider object-found
+        MIN_MATCH_OBJECTFOUND=10    # after robust check, to consider object-found
 
         # Feature extractor uses grayscale images
         img1 = cv2.cvtColor(img1_bgr, cv2.COLOR_BGR2GRAY)
