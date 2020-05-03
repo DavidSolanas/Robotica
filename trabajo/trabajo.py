@@ -200,7 +200,7 @@ def main(m, r, a):
     try:
         
         if a:
-            robot = Robot(init_position=[600.0, 2600.0, np.pi / 2])
+            robot = Robot(init_position=[600.0, 2600.0, 0])
             point_ini=np.array([3,5])
             point_end=np.array([7,5])
             map_file = 'mapas/mapaA_CARRERA2020.txt'
@@ -232,28 +232,28 @@ def main(m, r, a):
         robot.catch()
 
         robot.rot(th_goal)
-        """
-        #slalom2(robot, a)
-        
-        time.sleep(10)
         find_exit(robot, map_a)
         _exit(robot)
         robot.stopOdometry()
         """
+        #slalom2(robot, a)
+        
         robot.setSpeed(200, 0)
         time.sleep(2)
 
         robot.setSpeed(0,0)
         time.sleep(0.02)
 
-        robot.setSpeed(0, np.pi / 2)
-        time.sleep(1)
+        robot.rot(np.pi / 2)
 
         robot.setSpeed(0,0)
         time.sleep(0.02)
 
         robot.setSpeed(200, 0)
         time.sleep(2)
+
+        robot.stopOdometry()
+        """
         robot.startOdometry()
         robot.setSpeed(100, 0)
         time.sleep(2)

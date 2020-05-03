@@ -36,8 +36,8 @@ class Robot:
         """
 
         # Robot construction parameters
-        self.R = 27 # mm
-        self.L = 153 # mm
+        self.R = 26 # mm
+        self.L = 140 # mm
 
         ##################################################
         # Motors and sensors setup
@@ -216,7 +216,7 @@ class Robot:
         self.BP.reset_all()
 
 
-    def rot(self, th_goal, sign=0, offset=0.1):
+    def rot(self, th_goal, sign=0, offset=0.07):
         _, _, th = self.readOdometry()
         if sign != 0:
             self.setSpeed(0, sign*np.pi / 3)
