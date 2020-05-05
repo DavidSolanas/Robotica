@@ -113,9 +113,9 @@ def slalom2(robot, map_a):
             if 999 <= y <= 1001:
                 estado = 5
                 if map_a:
-                    robot.rot(np.pi, sign=-1)
+                    robot.rot(np.pi, sign=-1,  offset=0.12)
                 else:
-                    robot.rot(0, sign=1)
+                    robot.rot(0, sign=1,  offset=0.12)
                 robot.setSpeed(200, 0)
             
         elif estado == 5:
@@ -194,8 +194,8 @@ def find_exit(robot, map_a):
     while (not found1) or (not found2):
         frame = robot.get_photo()
         frame = cv2.cvtColor(frame, cv2.COLOR_HSV2BGR)
-        cv2.imshow("A", frame)
-        cv2.waitKey()
+        # cv2.imshow("A", frame)
+        # cv2.waitKey()
         if not found1:
             found1, pts1 = robot.find_template(img_captured=frame, imReference=img_r2)
         if not found2:
@@ -229,7 +229,7 @@ def find_exit(robot, map_a):
     return
 
 
-def _exit(robot):
+def _exit(robot, map_a):
     robot.setSpeed(200,0)
 
     while not robot.detectObstacle():
@@ -238,13 +238,14 @@ def _exit(robot):
     
     robot.setSpeed(0, 0)
     time.sleep(0.002)
-    robot.rot(np.pi / 2)
+    sign = -1 if map_a else 1 
+    robot.rot(np.pi / 2, sign=sign)
     robot.setSpeed(0, 0)
     time.sleep(0.002)
 
     robot.setSpeed(200, 0)
     _, y, _ = robot.readOdometry()
-    while y < 2800:
+    while y < 3200:
         time.sleep(0.02)
         _, y, _ = robot.readOdometry()
     
@@ -281,19 +282,15 @@ def main(m, r, a):
         robot.rot(th_goal)
 
         robot.setSpeed(200, 0)
-        time.sleep(2)
+        time.sleep(2.5)
         robot.setSpeed(0, 0)
         th_goal = np.pi / 2
         robot.trackObject()
         # Catch the object
         robot.catch()
-
-        robot.rot(th_goal)
-        robot.setSpeed(0,0)
-        time.sleep(0.02)
         
         find_exit(robot, map_a)
-        _exit(robot)
+        _exit(robot, map_a)
 
         robot.stopOdometry()
         """

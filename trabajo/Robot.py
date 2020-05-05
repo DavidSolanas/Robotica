@@ -303,7 +303,7 @@ class Robot:
                 kp_ball = kp
                 kp_size = kp.size
 
-        if kp_ball is None:
+        if kp_ball is None or kp_size < 14:
             return False, -1, -1, -1
 
         return True, kp_ball.pt[0], kp_ball.pt[1], kp_ball.size
@@ -341,7 +341,7 @@ class Robot:
         # Variable to know where to rotate when the blob is lost
         x_blob_ant = -1
         # First search the blob
-        x_blob, y_blob, area_blob = self.search_ball(np.pi / 3)
+        x_blob, y_blob, area_blob = self.search_ball(-np.pi / 3)
         stop_y = False
         stop_x = False
 
@@ -368,19 +368,19 @@ class Robot:
             offset = 320 - x_blob
 
             # Recalculate stop conditions
-            stop_y = y_blob > 380 or stop_y
+            stop_y = y_blob > 370
             stop_x = abs(offset) < 10
 
             # Assign the velocities, offset * .002 because .002 is the period of
             # the loop
-            w = offset * .002 if not stop_x else 0
+            w = offset * .001 if not stop_x else 0
             v = 100 if not stop_y else 0
             # Set the robot's speed
             self.setSpeed(v, w)
             x_blob_ant = x_blob
 
             # Sleep .002 seconds
-            time.sleep(.002)
+            time.sleep(.001)
         
         # In this point the robot is close enough to the blob, recenter the robot
         # and get a little closer to the blob. Fitst of all, stop the robot
@@ -389,7 +389,7 @@ class Robot:
 
         # Get a little closer to the blob
         self.setSpeed(155, 0)
-        time.sleep(0.8)
+        time.sleep(1.3)
         self.setSpeed(0, 0)
 
 
@@ -429,7 +429,7 @@ class Robot:
         MAX_FEATURES = 500
         # REQUIRED number of correspondences (matches) found:
         MIN_MATCH_COUNT=20          # initially
-        MIN_MATCH_OBJECTFOUND=10    # after robust check, to consider object-found
+        MIN_MATCH_OBJECTFOUND=9    # after robust check, to consider object-found
 
         # Feature extractor uses grayscale images
         img1 = cv2.cvtColor(img1_bgr, cv2.COLOR_BGR2GRAY)

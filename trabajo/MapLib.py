@@ -510,7 +510,7 @@ class Map2D:
         d_x = (x - 200) / self.sizeCell
         d_y = (y - 200) / self.sizeCell
         if th == 0 or th == np.pi:
-            if abs(res_x) < 1:
+            if abs(res_x) < 5:
                 _x = int(math.ceil(d_x)) * 2
             else:
                 _x = int(math.floor(d_x)) * 2 if res_x > 0 else int(math.ceil(d_x))
@@ -518,7 +518,7 @@ class Map2D:
             _x = int(round(d_x)) * 2
 
         if th == np.pi/2 or th == -np.pi/2:
-            if abs(res_y) < 1:
+            if abs(res_y) < 5:
                 _y = int(math.ceil(d_y)) * 2
             else:
                 _y = int(math.floor(d_y)) * 2 if res_y > 0 else int(math.ceil(d_y)) * 2
@@ -602,16 +602,19 @@ class Map2D:
             robot.setSpeed(150,0)
 
         #advance to the target box if no obstacle is detected
-        while (currentX != x_goal or currentY != y_goal) and not robot.detectObstacle() :
+        while (currentX != x_goal or currentY != y_goal) and not robot.detectObstacle(max_=30) :
             x,y, th = robot.readOdometry()
             currentTh = self.calculateOrientation(th)
             currentX,currentY=self.calculatePosition(x,y, currentTh, x_next, y_next)
+            print()
+            print(x, currentX, y, currentY)
+            print()
             time.sleep(0.005)
         
         #if an obstacle was detected, we calculate where it is based on the orientation of the robot
         if (currentX != x_goal or currentY != y_goal):
             robot.setSpeed(0,0)
-            x, y = currentX, currentY
+            x, y = self.aux(x,y)
             #right
             if(currentTh==0):
                 currentX+=1
@@ -630,7 +633,7 @@ class Map2D:
             #planning the new route
             self.replanPath(x,y,self.point_end[0],self.point_end[1])
 
-        return robot.detectObstacle()
+        return robot.detectObstacle(max_=30)
 
     def move(self,robot):
         """ Allows the robot to go from the initial position to the target following the planned path """
