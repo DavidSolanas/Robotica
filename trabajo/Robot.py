@@ -389,7 +389,7 @@ class Robot:
 
         # Get a little closer to the blob
         self.setSpeed(155, 0)
-        time.sleep(1.3)
+        time.sleep(1.1)
         self.setSpeed(0, 0)
 
 
