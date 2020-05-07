@@ -527,11 +527,16 @@ class Map2D:
 
         return _x + 1, _y + 1
 
+
+
     def aux(self, x, y):
+        """ Returns the robot's rounded position on the map. """
         d_x = (x - 200) / self.sizeCell
         d_y = (y - 200) / self.sizeCell
         return int(round(d_x))*2 + 1, int(round(d_y))*2 + 1
 
+    
+    
     def calculateOrientation(self,th):
         """ Obtain the current robot´s orientation with the odometry """
         angle=0
@@ -563,13 +568,11 @@ class Map2D:
         currentTh = self.calculateOrientation(th)
         x_next = (x_goal / 2 * self.sizeCell)
         y_next = (y_goal / 2 * self.sizeCell)
-        print(x, y)
+
         aux_x, aux_y = self.aux(x,y)
         aux_x = (aux_x / 2 * self.sizeCell)
         aux_y = (aux_y / 2 * self.sizeCell)
         currentX,currentY=self.calculatePosition(aux_x,aux_y, currentTh, x_next, y_next)
-        print(x_next, y_next)
-        print(currentX, currentY, currentTh)
         
         
         #calculate the robot´s orientation (it can be only in 4 positions)

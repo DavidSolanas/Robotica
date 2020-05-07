@@ -48,13 +48,6 @@ class Robot:
         # Configure sensors, for example a touch sensor.
         # self.BP.set_sensor_type(self.BP.PORT_1, self.BP.SENSOR_TYPE.TOUCH)
 
-        # Configure for an EV3 gyro sensor.
-        # BP.set_sensor_type configures the BrickPi3 for a specific sensor.
-        # BP.PORT_2 specifies that the sensor will be on sensor port 2.
-        # BP.Sensor_TYPE.EV3_GYRO_ABS_DPS specifies that the sensor will be an EV3 gyro sensor.
-        # self.BP.set_sensor_type(self.BP.PORT_2, self.BP.SENSOR_TYPE.EV3_GYRO_ABS_DPS)
-        self.BP.set_sensor_type(self.BP.PORT_2, self.BP.SENSOR_TYPE.EV3_GYRO_ABS_DPS) # Configure for an analog on sensor port pin 1, and poll the analog line on pin 1.
-
         # reset encoder B-right and C-left (or all the motors you are using)
         self.BP.offset_motor_encoder(self.BP.PORT_B,
             self.BP.get_motor_encoder(self.BP.PORT_B))
@@ -417,14 +410,11 @@ class Robot:
         """ Returns true if the sonar detects an object """
         return 2 < self.get_distance_sonar() < max_
 
-    def get_gyro(self):
-        """ Returns the value read by the gyroscope in radians """
-        value = self.BP.get_sensor(self.BP.PORT_2) # read the sensor port value
-        return value[0] * -1
-
      
  
     def match_images(self, img1_bgr, img2_bgr):
+        """ Given img1_bgr as reference, search matches with img2_bgr and if they are found,
+            returns True and their coordinates, otherwise returns False. """
         # max number of features to extract per image
         MAX_FEATURES = 500
         # REQUIRED number of correspondences (matches) found:
@@ -496,7 +486,8 @@ class Robot:
     
     
     def find_template(self, img_captured=None, imReference=None):
-    
+        """ Given a two images search matches with function match_images and return if founded,
+            or not and its coordinates. """
         img = cv2.cvtColor(img_captured, cv2.COLOR_HSV2BGR)
         found, pts = self.match_images(imReference, img)
         return found, pts

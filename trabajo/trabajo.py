@@ -20,80 +20,37 @@ import math
 from MapLib import Map2D
 
 
-def slalom(robot, map_a):
-    stop = False
-    estado = 0
-    while not stop:
-        
-        # Leer coordenadas del robot
-        x, y, th = robot.readOdometry()
-        print(x, y, th)
-        if estado == 0:
-            # estado 1, empieza la trayectoria
-                estado = 1
-                # Actualizar velocidad
-                if map_a:
-                    robot.setSpeed(400*np.pi/5, np.pi/5.)
-                else:
-                    robot.setSpeed(400*np.pi/5, -np.pi/5.)
-
-        elif estado == 1:
-            # estado 2, llega al centro del 8
-            if (599 <= x <= 601 and 1795 <= y <= 1805 and map_a) or \
-                (2199 <= x <= 2201 and 1795 <= y <= 1805 and  not map_a):
-                estado = 2
-                # Actualizar velocidad
-                if map_a:
-                    robot.setSpeed(400*np.pi/5, -np.pi/5.)
-                else:
-                    robot.setSpeed(400*np.pi/5, np.pi/5.)
-
-        elif estado == 2:
-            # estado 3, llega arriba del 8
-            if (599 <= x <= 625 and 995 <= y <= 1008 and map_a) or \
-                (2199 <= x <= 2225 and 995 <= y <= 1008 and  not map_a):
-                stop = True
-
-        time.sleep(0.005)
-
-    robot.setSpeed(0, 0)
-
-    x, y, th = robot.readOdometry()
-
-    th_goal = 0 if map_a else np.pi
-    robot.rot(th_goal)
-
-    robot.setSpeed(0, 0)
-    return
-
-
 def slalom2(robot, map_a):
+    """ Realiza la primera parte del recorrido, el slalom correspondiente
+        al mapa A o al mapa B. Se realiza con giros de 90 grados. """
     stop = False
     estado = 0
     while not stop:
         
         # Leer coordenadas del robot
         x, y, th = robot.readOdometry()
-        print(x, y, th)
+
         if estado == 0:
-            # estado 1, empieza la trayectoria
+            # estado 0, empieza la trayectoria
             estado = 1
             # Actualizar velocidad
             robot.setSpeed(200, 0)
                 
         elif estado == 1:
-            # estado 2, llega al centro del 8
+            # estado 1, llega al límite, toca girar y avanzar hasta la siguiente posición
             if (199 <= x <= 201 and map_a) or (2599 <= x <= 2601 and  not map_a):
                 estado = 2
-                # Actualizar velocidad
+                # Dependiendo del mapa, se gira en un sentido u otro
                 s = 1 if map_a else -1
                 robot.rot(-np.pi / 2, sign=s)
+                # Avanzar recto
                 robot.setSpeed(200, 0)
 
         elif estado == 2:
-            # estado 3, llega arriba del 8
+            # estado 2, llega al centro del slalom, girar y avanzar
             if 1799 <= y <= 1801:
                 estado = 3
+                # Dependiendo del mapa, se gira en un sentido u otro
                 if map_a:
                     robot.rot(0)
                 else:
@@ -101,17 +58,20 @@ def slalom2(robot, map_a):
                 robot.setSpeed(200, 0)
 
         elif estado == 3:
-            # estado 3, llega arriba del 8
+            # estado 3, se termina el centro del slalom y avanza hacia abajo
             if (999 <= x <= 1001 and map_a) or (1799 <= x <= 1801 and  not map_a):
                 estado = 4
+                # Dependiendo del mapa, se gira en un sentido u otro
                 s = -1 if map_a else 1
                 robot.rot(-np.pi / 2, sign=s)
+                # Avanzar hasta el final
                 robot.setSpeed(200, 0)
         
         elif estado == 4:
-            # estado 3, llega arriba del 8
+            # estado 3, llega a la parte final del slalom y se encara para terminar
             if 999 <= y <= 1001:
                 estado = 5
+                # Dependiendo del mapa, se gira en un sentido u otro
                 if map_a:
                     robot.rot(np.pi, sign=-1,  offset=0.12)
                 else:
@@ -119,7 +79,7 @@ def slalom2(robot, map_a):
                 robot.setSpeed(200, 0)
             
         elif estado == 5:
-            # estado 3, llega arriba del 8
+            # estado 5, termina el slalom, se encara para empezar nueva ruta
             if (599 <= x <= 601 and map_a) or (2199 <= x <= 2201 and  not map_a):
                 if map_a:
                     robot.rot(0, sign=1)
@@ -135,6 +95,10 @@ def slalom2(robot, map_a):
 
 
 def get_center(robot,map_a):
+    """ Función para centrar el robot para poder identificar por dónde hay que salir.
+        Se coloca en el centro del espacio de la pelota mirando hacia las imágenes. """
+
+    # Se orienta hacia las paredes para colocarse según el sónar
     if map_a:
         robot.rot(0)
     else:
@@ -143,6 +107,7 @@ def get_center(robot,map_a):
     robot.setSpeed(0,0)
     time.sleep(0.02)
 
+    # Avanza (o se aleja) hacia la pared hasta estar a 80 cm de ella
     d_x = robot.get_distance_sonar()
     v = d_x - 80
     stop = False
@@ -159,11 +124,13 @@ def get_center(robot,map_a):
     robot.setSpeed(0,0)
     time.sleep(0.02)
 
+    # Se encara el robot hacia las imágenes
     robot.rot(np.pi/2)
 
     robot.setSpeed(0,0)
     time.sleep(0.02)
 
+    # Avanza (o se aleja) hacia las imágenes hasta estar a 60 cm de ellas.
     d_y = robot.get_distance_sonar()
     v = d_y - 60
     stop = False
@@ -184,6 +151,9 @@ def get_center(robot,map_a):
 
 
 def find_exit(robot, map_a):
+    """ Busca la imagen correspondiente al mapa y según su posición,
+        se determina por dónde hay que salir. """
+
     get_center(robot,map_a)
     r2_d2 = 'robots/R2-D2_s.png'
     bb8 = 'robots/BB8_s.png'
@@ -191,22 +161,23 @@ def find_exit(robot, map_a):
     img_bb8 = cv2.imread(bb8)
     found1 = False
     found2 = False
+
+    # Busca hasta encontrar matches suficientes de ambas imágnes
     while (not found1) or (not found2):
         frame = robot.get_photo()
         frame = cv2.cvtColor(frame, cv2.COLOR_HSV2BGR)
-        # cv2.imshow("A", frame)
-        # cv2.waitKey()
         if not found1:
             found1, pts1 = robot.find_template(img_captured=frame, imReference=img_r2)
         if not found2:
             found2, pts2 = robot.find_template(img_captured=frame, imReference=img_bb8)
     
+    # Se calcula la posición media de cada imágen
     x_pts1 = np.mean(pts1[:, 0][:, 0])
     x_pts2 = np.mean(pts2[:, 0][:, 0])
     
-    
+    # Dependiendo del mapa y las coordenadas de los matches se orienta en un sentido
+    # u otro para salir del laberinto.
     if map_a:
-        # PTS1 es lo q buscamos
         if x_pts1 < x_pts2:
             # Salir por la izq
             robot.rot(np.pi)
@@ -216,7 +187,6 @@ def find_exit(robot, map_a):
             robot.rot(0)
 
     else:
-        # PTS2 es lo q buscamos
         if x_pts2 < x_pts1:
             # Salir por la izq
             robot.rot(np.pi)
@@ -230,14 +200,17 @@ def find_exit(robot, map_a):
 
 
 def _exit(robot, map_a):
+    """ El robot sale del laberinto haciendo uso del sónar """
     robot.setSpeed(200,0)
 
+    # Avanza recto hasta detectar la pared
     while not robot.detectObstacle():
-        print(robot.get_distance_sonar())
         time.sleep(0.02)
     
     robot.setSpeed(0, 0)
     time.sleep(0.002)
+    
+    # Se orienta hacia la salida y avanza recto hasta salir del mapa
     sign = -1 if map_a else 1 
     robot.rot(np.pi / 2, sign=sign)
     robot.setSpeed(0, 0)
@@ -245,18 +218,21 @@ def _exit(robot, map_a):
 
     robot.setSpeed(200, 0)
     _, y, _ = robot.readOdometry()
+    # Se avanza recto hasta alcanzar la posición y=3200
     while y < 3200:
         time.sleep(0.02)
         _, y, _ = robot.readOdometry()
     
+    # Se ha salido del laberinto, parar el robot
     robot.setSpeed(0, 0)
     return
 
 
 
 def main(m, r, a):
+    """ Se realiza el circuito completo, slalom, laberinto, atrapar pelota y salir. """
     try:
-        
+        # Dependiendo de los argumentos se elige un mapa u otro
         if a:
             robot = Robot(init_position=[600.0, 2600.0, np.pi])
             point_ini=np.array([3,5])
@@ -270,156 +246,43 @@ def main(m, r, a):
         
         
         robot.startOdometry()
-        
+        # Se hace el slalom
         slalom2(robot, a)
     
+        # Se carga el mapa y se avanza hasta la posición objetivo
         myMap = Map2D(map_file)
         myMap.findPath(point_ini,point_end)
         time.sleep(0.5)
         myMap.move(robot)
 
+        # Se orienta hacia arriba para entrar en la zona de la pelota
         th_goal = np.pi / 2
         robot.rot(th_goal)
-
+        # Avanza para entrar en la zona de la pelota
         robot.setSpeed(200, 0)
         time.sleep(2.5)
+
         robot.setSpeed(0, 0)
         th_goal = np.pi / 2
+
+        # Se busca la pelota y se acerca a ella
         robot.trackObject()
-        # Catch the object
+        # Atrapa la pelota
         robot.catch()
         
+        # Busca la salida
         find_exit(robot, map_a)
+        # Sale del mapa
         _exit(robot, map_a)
 
         robot.stopOdometry()
-        """
-        slalom2(robot, a)
-        robot.stopOdometry()
         
-        
-        robot.setSpeed(200, 0)
-        time.sleep(2)
-
-        robot.setSpeed(0,0)
-        time.sleep(0.02)
-
-        robot.rot(np.pi / 2)
-
-        robot.setSpeed(0,0)
-        time.sleep(0.02)
-
-        robot.setSpeed(200, 0)
-        time.sleep(2)
-
-        robot.stopOdometry()
-        robot.startOdometry()
-        robot.setSpeed(100, 0)
-        time.sleep(2)
-        robot.setSpeed(0, -np.pi/3)
-        stop = False
-        while not stop:
-            gyro = robot.get_gyro()
-            print(gyro)
-            time.sleep(.005)
-            stop = abs(gyro) >= 84
-        
-        robot.setSpeed(0,0)
-        time.sleep(1.0)
-        aux = robot.get_gyro()
-        robot.setSpeed(0, np.pi/3)
-        stop = False
-        while not stop:
-            gyro = robot.get_gyro()
-            print(gyro)
-            time.sleep(.005)
-            stop = gyro >= (aux + 84)
-        # myMap = Map2D(m)
-        # myMap.findPath(point_ini,point_end)
-        print(robot.readOdometry())
-        robot.setSpeed(100, 0)
-        time.sleep(2)
-        robot.stopOdometry()
-        
-        # 1. load map and compute costs and path
-        myMap = Map2D(map_file)
-        #myMap.verbose = True
-        #myMap.drawMap(saveSnapshot=False)
-
-        # you can set verbose to False to stop displaying plots interactively
-        # (and maybe just save the snapshots of the map)
-        #myMap.verbose = False
-
-        # sample commands to see how to draw the map
-        sampleRobotLocations = [ [0,0,0] ]
-        # this will save a .png with the current map visualization,
-        # all robot positions, last one in green
-        myMap.verbose = True
-        #myMap.drawMapWithRobotLocations( sampleRobotLocations, saveSnapshot=False )
-
-        # this shows the current, and empty, map and an additionally closed connection
-        #myMap.deleteConnection(0,0,0)
-        #myMap.verbose = True
-        #myMap.drawMap(saveSnapshot=False)
-
-        # this will open a window with the results, but does not work well remotely
-        #myMap.verbose = True
-        #sampleRobotLocations = [ [200, 200, 3.14/2.0], [200, 600, 3.14/4.0], [200, 1000, -3.14/2.0],  ]
-        #myMap.drawMapWithRobotLocations( sampleRobotLocations, saveSnapshot=False )
-
-        point_ini=np.array([1,1])
-        point_end=np.array([5,1])
-        
-        myMap.findPath(point_ini,point_end)
-        print(myMap.costMatrix.transpose())
-        myMap.drawMap(saveSnapshot=False)
-        """
 
     except KeyboardInterrupt: 
     # except the program gets interrupted by Ctrl+C on the keyboard.
     # THIS IS IMPORTANT if we want that motors STOP when we Ctrl+C ...
         robot.stopOdometry()
-    """
 
-        if 0 < 0:
-            print('d must be a positive value')
-            exit(1)
-
-        # Initialize Odometry. Default value will be 0,0,0
-        robot = Robot() 
-        # 1. launch updateOdometry thread()
-        robot.startOdometry()
-        
-        # 2. Loop running the tracking until ??, then catch the ball
-        # TO-DO: ADD to the Robot class a method to track an object, given certain parameters
-        # for example the different target properties we want (size, position, color, ..)
-        # or a boolean to indicate if we want the robot to catch the object or not
-        # At least COLOR, the rest are up to you, but always put a default value.
-    	# res = robot.trackObject(colorRangeMin=[0,0,0], colorRangeMax=[255,255,255], 
-        #                   targetSize=??, target??=??, ...)
-
-        # Track the object until the robot is close enough
-        robot.trackObject()
-        # Catch the object
-        robot.catch()
-        # Retreat a little
-        robot.setSpeed(-400, 0)
-        time.sleep(1)
-        # Stops the robot
-        robot.setSpeed(0, 0)
-        time.sleep(0.1)
-        # Release the box
-        robot.release()
-
-        # 3. wrap up and close stuff ...
-        # This currently unconfigure the sensors, disable the motors, 
-        # and restore the LED to the control of the BrickPi3 firmware.
-        robot.stopOdometry()
-
-
-    
-    """
-    print('a')
 
 if __name__ == "__main__":
 
