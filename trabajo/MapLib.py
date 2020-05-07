@@ -513,7 +513,7 @@ class Map2D:
             if abs(res_x) < 25:
                 _x = int(math.ceil(d_x)) * 2
             else:
-                _x = int(math.floor(d_x)) * 2 if res_x > 0 else int(math.ceil(d_x))
+                _x = int(math.floor(d_x)) * 2 if res_x > 0 else int(math.ceil(d_x)) * 2
         else:
             _x = int(round(d_x)) * 2
 
@@ -529,7 +529,7 @@ class Map2D:
 
 
 
-    def aux(self, x, y):
+    def aux(self, x, y, th):
         """ Returns the robot's rounded position on the map. """
         d_x = (x - 200) / self.sizeCell
         d_y = (y - 200) / self.sizeCell
@@ -569,11 +569,14 @@ class Map2D:
         x_next = (x_goal / 2 * self.sizeCell)
         y_next = (y_goal / 2 * self.sizeCell)
 
-        aux_x, aux_y = self.aux(x,y)
+        aux_x, aux_y = self.aux(x,y, currentTh)
         aux_x = (aux_x / 2 * self.sizeCell)
         aux_y = (aux_y / 2 * self.sizeCell)
+        print(x_goal, y_goal)
+        print(x_next, y_next)
+        print(aux_x, aux_y)
         currentX,currentY=self.calculatePosition(aux_x,aux_y, currentTh, x_next, y_next)
-        
+        print(currentX, currentY)
         
         #calculate the robot´s orientation (it can be only in 4 positions)
         vertical = y_goal - currentY
@@ -593,8 +596,13 @@ class Map2D:
         th_goal = robot.norm_pi(currentTh + angle)
 
         if angle != 0:
-            robot.rot(th_goal)
-        
+            if currentTh == np.pi and th_goal == np.pi / 2:
+                robot.rot(th_goal, sign=-1)
+            elif currentTh == np.pi and th_goal == -np.pi / 2:
+                robot.rot(th_goal, sign=1)
+            else:
+                robot.rot(th_goal)
+                
         
         #stop moving
         robot.setSpeed(0,0)
@@ -612,7 +620,7 @@ class Map2D:
             time.sleep(0.005)
         
         #if an obstacle was detected, we calculate where it is based on the orientation of the robot
-        x, y = self.aux(x,y)
+        x, y = self.aux(x,y, currentTh)
         if (x != x_goal or y != y_goal):
             robot.setSpeed(0,0)
             c_x = x

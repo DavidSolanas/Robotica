@@ -54,7 +54,7 @@ def slalom2(robot, map_a):
                 if map_a:
                     robot.rot(0)
                 else:
-                    robot.rot(np.pi)
+                    robot.rot(np.pi, sign=-1)
                 robot.setSpeed(200, 0)
 
         elif estado == 3:
