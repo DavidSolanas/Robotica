@@ -82,7 +82,7 @@ if not os.path.isfile(args.odometryfile):
 odometry = args.odometryfile
 
 coord = np.array(read_log(odometry))
-myMap = Map2D('mapas/mapaB_CARRERA2020.txt')
+myMap = Map2D('mapas/mapaA_CARRERA2020.txt')
 # Dibuja la trayectoria del robot según el log guardado
 
 myMap.verbose = True
