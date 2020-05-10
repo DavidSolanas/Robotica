@@ -285,7 +285,7 @@ class Map2D:
                 cy= j*self.sizeCell + self.sizeCell/2.
                 X = np.array([cx])
                 Y = np.array([cy])
-                cost = self.costMatrix[2*i+1,2*j+1]
+                cost = self.costMatrix[i, j]
                 self.current_ax.text(X, Y, str(cost))
 
 
@@ -362,12 +362,12 @@ class Map2D:
         if self.verbose:
             self._drawCostMatrix()
 
-        if robotPosVectors:
+        if len(robotPosVectors) > 0:
             for loc in robotPosVectors:
-                print("Robot in pos: ", loc)
-                self._drawRobot(loc_x_y_th=loc, robotPlotStyle='b--')
+                # print("Robot in pos: ", loc)
+                self._drawRobot(loc_x_y_th=loc, robotPlotStyle='b--', small=True)
             # plot last robot position with solid green line
-            self._drawRobot(loc_x_y_th=loc, robotPlotStyle='g-')
+            self._drawRobot(loc_x_y_th=loc, robotPlotStyle='g-', small=True)
 
         if saveSnapshot:
             ts = str(time.time())

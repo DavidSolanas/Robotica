@@ -14,6 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 import os
+from MapLib import Map2D
 
 
 # Dibuja robot en location_eje con color (c) y tamano (p/g)
@@ -81,9 +82,9 @@ if not os.path.isfile(args.odometryfile):
 odometry = args.odometryfile
 
 coord = np.array(read_log(odometry))
-
+myMap = Map2D('mapas/mapaB_CARRERA2020.txt')
 # Dibuja la trayectoria del robot según el log guardado
-for c in coord:
-  dibrobot(c, 'b', 'p')
 
-plt.show()
+myMap.verbose = True
+myMap.drawMapWithRobotLocations( coord, saveSnapshot=False )
+
